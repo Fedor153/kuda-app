@@ -284,7 +284,10 @@ const TOP = 4.5;
 const TAGS = {
   "спешелти": "🫘", "своя обжарка": "🔥", "завтраки": "🍳", "десерты": "🍰",
   "для работы": "💻", "терраса": "🌿", "круглосуточно": "🌙", "необычные": "✨",
+  "театр": "🎭", "виды": "🏙", "квест": "🗝", "скалодром": "🧗", "боулинг": "🎳",
+  "караоке": "🎤", "для детей": "🧸",
 };
+const bigNum = (n) => n >= 1000 ? `${(n / 1000).toFixed(n >= 10000 ? 0 : 1).replace(".0", "")} тыс.` : String(n);
 const tagLabel = (t) => `${TAGS[t] || "🏷"} ${t}`;
 
 let botName = "";
@@ -505,7 +508,7 @@ function rowCard(p) {
     <div class="info">
       <b>${esc(p.name)}</b>
       <div class="meta">${esc(catInfo(p.category).emoji + " " + p.category)}</div>
-      <div class="meta">${stars(p.rating)} ${p.reviews_count ? `<em>· ${plural(p.reviews_count, "отзыв", "отзыва", "отзывов")}</em>` : ""}</div>
+      <div class="meta">${stars(p.rating)} ${p.ratings_count ? `<em>· ${bigNum(p.ratings_count)} оценок</em>` : ""}</div>
       ${meta ? `<div class="meta">${esc(meta)}</div>` : ""}
     </div>
     ${favs.has(p.id) ? "<span>⭐</span>" : ""}
@@ -645,7 +648,7 @@ const views = {
       <div class="sheet">
         <div class="place-head">
           <div><h2>${esc(p.name)}</h2><div class="muted">${esc(catInfo(p.category).emoji + " " + p.category)}</div></div>
-          ${p.rating ? `<div class="score"><b>★ ${p.rating.toFixed(1)}</b><small>${p.reviews_count ? plural(p.reviews_count, "отзыв", "отзыва", "отзывов") : "рейтинг"}</small></div>` : ""}
+          ${p.rating ? `<div class="score"><b>★ ${p.rating.toFixed(1)}</b><small>${p.ratings_count ? bigNum(p.ratings_count) + " оценок" : "рейтинг"}</small></div>` : ""}
         </div>
         <div class="tags">${[p.city, p.district, ...(p.tags || []).map(tagLabel), p.photos.length > 1 ? `📷 ${p.photos.length} фото →` : ""].filter(Boolean).map((t) => `<span class="tag">${esc(t)}</span>`).join("")}</div>
 
@@ -675,7 +678,7 @@ const views = {
 
         <button class="btn primary press" data-go="booking">📝 Текст для брони</button>
         ${p.photo_credit ? `<p class="credit">Фото: ${esc(p.photo_credit)}</p>` : ""}
-        ${p.rating && !p.reviews_count ? `<p class="credit">Рейтинг — по данным Яндекс Карт.</p>` : ""}
+        ${p.ratings_count ? `<p class="credit">Рейтинг и число оценок — по данным Яндекс Карт на 2 ноября 2026.</p>` : ""}
       </div>`;
   },
 
