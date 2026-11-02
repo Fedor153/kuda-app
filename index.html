@@ -250,6 +250,17 @@
   .browser-back { display: none; margin-bottom: 12px; }
   :root:not(.tg) .browser-back.visible { display: inline-block; }
 
+  /* Кнопки карт */
+  .maps { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 12px; }
+  .map-btn { display: flex; align-items: center; justify-content: center; gap: 8px; padding: 13px 8px; border-radius: 16px;
+    font-weight: 600; font-size: 14px; color: #fff; box-shadow: var(--shadow); }
+  .map-btn b { width: 22px; height: 22px; border-radius: 50%; display: grid; place-items: center; font-size: 13px; background: #fff; }
+  .map-btn.yandex { background: linear-gradient(135deg, #ff4d4d, #fc3f1d); }
+  .map-btn.yandex b { color: #fc3f1d; }
+  .map-btn.google { background: linear-gradient(135deg, #4c8bf5, #1a73e8); }
+  .map-btn.google b { color: #1a73e8; }
+  .card.about p { font-size: 16px; line-height: 1.5; }
+
   /* ---------- Анимации и новый дизайн ---------- */
   .anim { width: 1em; height: 1em; display: inline-block; vertical-align: -0.12em; object-fit: contain; }
   .cover .cover-emoji { width: 46%; height: 46%; max-width: 110px; max-height: 110px; position: relative;
@@ -400,7 +411,14 @@ const TAGS = {
 };
 const PAGE = 30;
 const isVerified = (p) => !!p.ratings_count;
-const mapLink = (p) => `https://yandex.ru/maps/?pt=${p.lon},${p.lat}&z=17&l=map`;
+const mapQuery = (p) => [p.name, p.address, p.city].filter(Boolean).join(", ");
+// Яндекс: ищем по названию рядом с точкой, а без точки — по названию, адресу и городу
+const yandexLink = (p) => p.lat && p.lon
+  ? `https://yandex.ru/maps/?text=${encodeURIComponent(p.name)}&ll=${p.lon},${p.lat}&z=17`
+  : `https://yandex.ru/maps/?text=${encodeURIComponent(mapQuery(p))}`;
+const googleLink = (p) => (p.address || !(p.lat && p.lon))
+  ? `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(mapQuery(p))}`
+  : `https://www.google.com/maps/search/?api=1&query=${p.lat},${p.lon}`;
 const bigNum = (n) => n >= 1000 ? `${(n / 1000).toFixed(n >= 10000 ? 0 : 1).replace(".0", "")} тыс.` : String(n);
 const tagLabel = (t) => `${TAGS[t] || "🏷"} ${t}`;
 
@@ -769,7 +787,6 @@ const views = {
       p.phone && ["📞", esc(p.phone)],
       p.hours && ["🕐", esc(p.hours)],
     ].filter(Boolean);
-    const mapUrl = link && isMapLink(link) ? link : (p.lat && p.lon ? mapLink(p) : null);
     const siteUrl = link && !isMapLink(link) ? link : null;
     const reviews = p.reviews || [];
     return `
@@ -784,12 +801,15 @@ const views = {
         <div class="actions">
           <button class="action press" data-fav="${p.id}"><span>${fav ? "❤️" : "🤍"}</span>${fav ? "В избранном" : "Сохранить"}</button>
           ${tel ? `<a class="action press" href="tel:${esc(tel)}"><span>📞</span>Позвонить</a>` : ""}
-          ${mapUrl ? `<button class="action press" data-link="${esc(mapUrl)}"><span>🗺</span>На карте</button>` : ""}
           ${siteUrl ? `<button class="action press" data-link="${esc(siteUrl)}"><span>🌐</span>Сайт</button>` : ""}
           <button class="action press" data-share="${p.id}"><span>📤</span>Поделиться</button>
         </div>
 
-        ${p.description ? `<div class="card"><p>${esc(p.description)}</p></div>` : ""}
+        <div class="maps">
+          <button class="map-btn yandex press" data-link="${esc(link && /yandex\.[a-z]+\/maps/.test(link) ? link : yandexLink(p))}"><b>Я</b>Яндекс Карты</button>
+          <button class="map-btn google press" data-link="${esc(googleLink(p))}"><b>G</b>Google Maps</button>
+        </div>
+        ${p.description ? `<div class="card about"><p>${esc(p.description)}</p></div>` : ""}
         ${(p.todo || []).length ? `<div class="card"><b>Чем заняться</b>${p.todo.map((t) =>
           `<div class="line">${esc(t)}</div>`).join("")}</div>` : ""}
         <div class="card">${lines.map(([i, t]) => `<div class="line"><span class="ico">${i}</span><span>${t}</span></div>`).join("")}</div>
