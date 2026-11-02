@@ -1,0 +1,348 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, user-scalable=no">
+<title>💌 Тебе письмо</title>
+<meta property="og:title" content="💌 Тебе письмо">
+<meta property="og:description" content="Открой конверт 🥺">
+<meta name="theme-color" content="#ffd6e2">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Caveat:wght@600;700&family=Nunito:wght@500;700;800&display=swap" rel="stylesheet">
+<style>
+  /* Открытка-приглашение: конверт -> бумажная открытка -> билет.
+     Данные — в части ссылки после «#», на сервер они не уходят. */
+  :root {
+    --bg1: #ffe3ec; --bg2: #ffd0dd; --bg3: #f6e3ff;
+    --accent: #e8436f; --accent2: #ff7aa2; --ink: #4a2433; --muted: #93606f;
+    --env: #f4b3c4; --env-dark: #e894aa; --paper: #fffaf6;
+  }
+  .friend {
+    --bg1: #e3f2ff; --bg2: #fff1cc; --bg3: #e5fff3;
+    --accent: #2f7de1; --accent2: #f7b733; --ink: #1f3550; --muted: #5d7590;
+    --env: #a9d3ff; --env-dark: #86bdf5; --paper: #fffdf7;
+  }
+  * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+  html, body { margin: 0; min-height: 100%; }
+  body {
+    font: 16px/1.45 "Nunito", -apple-system, "Segoe UI", Roboto, sans-serif; color: var(--ink);
+    background: radial-gradient(90% 60% at 10% 0%, var(--bg3), transparent 60%),
+                linear-gradient(160deg, var(--bg1), var(--bg2));
+    min-height: 100vh; overflow-x: hidden; display: flex; align-items: center; justify-content: center;
+    padding: max(24px, env(safe-area-inset-top)) 18px max(24px, env(safe-area-inset-bottom));
+  }
+  button { font: inherit; border: 0; cursor: pointer; }
+  .hand { font-family: "Caveat", "Segoe Print", cursive; }
+
+  /* Плывущие сердечки */
+  .floaters i { position: fixed; bottom: -40px; font-style: normal; opacity: .55; pointer-events: none;
+    animation: rise linear infinite; z-index: 0; }
+  @keyframes rise { to { transform: translateY(-115vh) rotate(30deg); opacity: 0; } }
+
+  .stage { position: relative; z-index: 1; width: 100%; max-width: 400px; }
+
+  /* ---------- Конверт ---------- */
+  .envelope-wrap { text-align: center; animation: drop .7s cubic-bezier(.2, 1.3, .4, 1) both; }
+  @keyframes drop { from { opacity: 0; transform: translateY(-30px) rotate(-6deg); } to { opacity: 1; transform: none; } }
+  .to { font-size: 34px; color: var(--accent); margin: 0 0 18px; line-height: 1.1; }
+  .envelope { position: relative; width: 300px; height: 200px; margin: 0 auto; perspective: 900px; cursor: pointer;
+    animation: wiggle 2.8s ease-in-out infinite; }
+  @keyframes wiggle { 0%, 80%, 100% { transform: rotate(0); } 85% { transform: rotate(-3deg); } 90% { transform: rotate(3deg); } 95% { transform: rotate(-2deg); } }
+  .env-back { position: absolute; inset: 0; background: var(--env-dark); border-radius: 10px; box-shadow: 0 18px 40px rgba(120, 30, 60, .25); }
+  .letter { position: absolute; left: 18px; right: 18px; top: 14px; height: 160px; background: var(--paper); border-radius: 6px;
+    transition: transform .8s .35s cubic-bezier(.2, .9, .3, 1); box-shadow: 0 2px 8px rgba(0, 0, 0, .08);
+    display: grid; place-items: center; font-size: 26px; color: var(--accent); }
+  .env-front { position: absolute; inset: 0; border-radius: 10px; overflow: hidden; pointer-events: none; }
+  .env-front::before, .env-front::after { content: ""; position: absolute; bottom: 0; width: 0; height: 0; border-style: solid; }
+  .env-front::before { left: 0; border-width: 100px 0 100px 150px; border-color: transparent transparent transparent var(--env); }
+  .env-front::after { right: 0; border-width: 100px 150px 100px 0; border-color: transparent var(--env) transparent transparent; }
+  .env-bottom { position: absolute; left: 0; right: 0; bottom: 0; height: 0; border-style: solid;
+    border-width: 0 150px 110px 150px; border-color: transparent transparent var(--env) transparent; filter: brightness(1.04); }
+  .flap { position: absolute; left: 0; top: 0; width: 0; height: 0; border-style: solid;
+    border-width: 115px 150px 0 150px; border-color: var(--env-dark) transparent transparent transparent;
+    transform-origin: top; transition: transform .55s ease-in; z-index: 3; filter: brightness(.97); }
+  .seal { position: absolute; left: 50%; top: 92px; width: 54px; height: 54px; margin-left: -27px; border-radius: 50%; z-index: 4;
+    background: radial-gradient(circle at 35% 30%, #ff6b88, #c41d45 70%); box-shadow: 0 4px 10px rgba(150, 0, 40, .35);
+    display: grid; place-items: center; font-size: 24px; transition: opacity .25s, transform .3s; }
+  .friend .seal { background: radial-gradient(circle at 35% 30%, #ffd66b, #e09a14 70%); }
+  .tap { margin-top: 22px; color: var(--muted); font-weight: 700; animation: blink 1.6s ease-in-out infinite; }
+  @keyframes blink { 50% { opacity: .45; } }
+  .open .flap { transform: rotateX(180deg); z-index: 1; }
+  .open .seal { opacity: 0; transform: scale(.4); }
+  .open .letter { transform: translateY(-120px); }
+  .open { animation: none; }
+  .envelope-wrap.gone { transition: opacity .4s, transform .4s; opacity: 0; transform: scale(.9) translateY(30px); }
+
+  /* ---------- Бумажная открытка ---------- */
+  .postcard { position: relative; background: var(--paper); border-radius: 18px; padding: 26px 22px 24px;
+    box-shadow: 0 24px 60px rgba(120, 30, 60, .22), 0 2px 0 rgba(0, 0, 0, .03);
+    transform: rotate(-1.2deg); animation: unfold .7s cubic-bezier(.2, 1.2, .4, 1) both; text-align: center;
+    background-image: repeating-linear-gradient(0deg, transparent 0 31px, rgba(232, 67, 111, .06) 31px 32px); }
+  @keyframes unfold { from { opacity: 0; transform: rotate(-8deg) translateY(60px) scale(.9); } to { opacity: 1; transform: rotate(-1.2deg); } }
+  .stamp { position: absolute; top: 14px; right: 14px; width: 54px; height: 64px; border: 2px dashed var(--accent2);
+    border-radius: 4px; display: grid; place-items: center; font-size: 26px; transform: rotate(6deg); background: #fff; }
+  .from { font-size: 24px; color: var(--muted); margin: 0 60px 4px 0; text-align: left; }
+  .question { font-size: 44px; line-height: 1.02; color: var(--accent); margin: 6px 0 18px; }
+  .polaroid { display: inline-block; background: #fff; padding: 10px 10px 8px; border-radius: 4px; transform: rotate(2deg);
+    box-shadow: 0 10px 24px rgba(0, 0, 0, .12); max-width: 260px; width: 100%; }
+  .polaroid .pic { height: 150px; border-radius: 2px; display: grid; place-items: center; font-size: 54px; position: relative; overflow: hidden;
+    background: linear-gradient(135deg, var(--accent2), var(--accent)); }
+  .polaroid .pic img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
+  .polaroid .cap { font-size: 26px; margin-top: 6px; line-height: 1.05; color: var(--ink); }
+  .meta { margin: 14px 0 0; color: var(--muted); font-size: 15px; }
+  .meta b { color: var(--ink); }
+  .answers { display: flex; justify-content: center; align-items: center; gap: 14px; margin-top: 22px; min-height: 64px; }
+  .yes { padding: 14px 34px; border-radius: 999px; font-size: 19px; font-weight: 800; color: #fff;
+    background: linear-gradient(135deg, var(--accent2), var(--accent)); box-shadow: 0 10px 24px rgba(232, 67, 111, .35);
+    transition: transform .25s cubic-bezier(.2, 1.4, .4, 1); }
+  .friend .yes { box-shadow: 0 10px 24px rgba(47, 125, 225, .35); }
+  .no { padding: 12px 24px; border-radius: 999px; font-size: 16px; font-weight: 700; color: var(--muted);
+    background: #fff; border: 2px solid rgba(0, 0, 0, .08); white-space: nowrap; z-index: 20;
+    transition: left .28s cubic-bezier(.2, 1.2, .4, 1), top .28s cubic-bezier(.2, 1.2, .4, 1); }
+  .hint { font-size: 22px; color: var(--accent); min-height: 26px; margin-top: 10px; }
+
+  /* ---------- Билет ---------- */
+  .yay { text-align: center; font-size: 46px; color: var(--accent); margin: 0 0 4px; animation: unfold .6s both; }
+  .ticket { position: relative; display: flex; background: var(--paper); border-radius: 18px; overflow: hidden;
+    box-shadow: 0 24px 60px rgba(120, 30, 60, .22); animation: unfold .7s .1s cubic-bezier(.2, 1.2, .4, 1) both; transform: rotate(-1deg); }
+  .ticket .main { flex: 1; padding: 18px 16px 16px; text-align: left; min-width: 0; }
+  .ticket .stub { width: 74px; flex: none; background: linear-gradient(180deg, var(--accent2), var(--accent)); color: #fff;
+    display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 6px; position: relative; }
+  .ticket .stub::before { content: ""; position: absolute; left: -1px; top: 8px; bottom: 8px; border-left: 3px dotted var(--paper); }
+  .ticket .stub span { writing-mode: vertical-rl; transform: rotate(180deg); font-weight: 800; letter-spacing: .12em; font-size: 13px; }
+  .ticket::before, .ticket::after { content: ""; position: absolute; right: 62px; width: 24px; height: 24px; border-radius: 50%;
+    background: var(--bg2); z-index: 2; }
+  .ticket::before { top: -12px; } .ticket::after { bottom: -12px; }
+  .ticket h2 { margin: 0; font-size: 34px; line-height: 1; color: var(--accent); }
+  .ticket .sub { margin: 2px 0 10px; color: var(--muted); font-size: 13px; text-transform: uppercase; letter-spacing: .08em; font-weight: 800; }
+  .trow { display: flex; gap: 10px; padding: 8px 0; border-top: 1px dashed rgba(0, 0, 0, .1); }
+  .trow .i { font-size: 20px; width: 26px; text-align: center; }
+  .trow b { display: block; font-size: 15px; } .trow small { color: var(--muted); font-size: 13px; }
+  .barcode { height: 34px; margin-top: 10px; border-radius: 3px; opacity: .8;
+    background: repeating-linear-gradient(90deg, var(--ink) 0 2px, transparent 2px 4px, var(--ink) 4px 5px, transparent 5px 8px, var(--ink) 8px 11px, transparent 11px 13px); }
+  .btns { display: grid; gap: 10px; margin-top: 18px; }
+  .btn { display: flex; align-items: center; justify-content: center; gap: 8px; padding: 14px; border-radius: 16px;
+    font-weight: 800; color: #fff; text-decoration: none; box-shadow: 0 6px 16px rgba(0, 0, 0, .1); }
+  .btn.ya { background: linear-gradient(135deg, #ff4d4d, #fc3f1d); }
+  .btn.gm { background: linear-gradient(135deg, #4c8bf5, #1a73e8); }
+  .btn.tg { background: linear-gradient(135deg, #3fb4f5, #2481cc); }
+  .btn.ghost { background: #fff; color: var(--accent); }
+  .row2 { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+  .note { text-align: center; font-size: 22px; color: var(--muted); margin-top: 14px; }
+
+  .confetti { position: fixed; top: -14px; z-index: 50; width: 10px; height: 14px; border-radius: 2px; pointer-events: none; animation: fall linear forwards; }
+  @keyframes fall { to { transform: translate(var(--dx), 110vh) rotate(var(--rot)); } }
+  @media (prefers-reduced-motion: reduce) { *, *::before, *::after { animation: none !important; transition: none !important; } }
+</style>
+</head>
+<body>
+<div class="floaters" id="floaters"></div>
+<main class="stage" id="stage"></main>
+
+<script>
+const BOT = "vyhodnoy_gid_bot";
+const stage = document.getElementById("stage");
+const esc = (s) => String(s ?? "").replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
+const buzz = (p) => { try { navigator.vibrate && navigator.vibrate(p); } catch {} };
+
+// Данные приглашения: #base64(JSON) — p: id места, n: имя, u: username, k: date|friend, m: meet|pickup, w: когда,
+// а также само место (pn, pa, pc, la, lo), чтобы открытка работала, даже если база мест обновится
+function readInvite() {
+  try {
+    const b64 = location.hash.slice(1).replace(/-/g, "+").replace(/_/g, "/");
+    const bytes = Uint8Array.from(atob(b64), (c) => c.charCodeAt(0));
+    return JSON.parse(new TextDecoder().decode(bytes));
+  } catch { return null; }
+}
+
+const MONTHS = ["января", "февраля", "марта", "апреля", "мая", "июня", "июля", "августа", "сентября", "октября", "ноября", "декабря"];
+const DAYS = ["в воскресенье", "в понедельник", "во вторник", "в среду", "в четверг", "в пятницу", "в субботу"];
+function whenText(w) {
+  if (!w) return "";
+  const [date, time] = w.split("T");
+  if (!date) return time ? `в ${time}` : "";
+  const d = new Date(date + "T12:00");
+  return `${DAYS[d.getDay()]}, ${d.getDate()} ${MONTHS[d.getMonth()]}${time ? ` в ${time}` : ""}`;
+}
+const cap = (t) => t ? t[0].toUpperCase() + t.slice(1) : t;
+
+function mapQuery(p) { return [p.name, p.address, p.city].filter(Boolean).join(", "); }
+function yandex(p) {
+  return p.lat && p.lon ? `https://yandex.ru/maps/?text=${encodeURIComponent(p.name)}&ll=${p.lon},${p.lat}&z=17`
+                        : `https://yandex.ru/maps/?text=${encodeURIComponent(mapQuery(p))}`;
+}
+function google(p) {
+  return (p.address || !(p.lat && p.lon)) ? `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(mapQuery(p))}`
+                                         : `https://www.google.com/maps/search/?api=1&query=${p.lat},${p.lon}`;
+}
+
+function floaters(isDate) {
+  const box = document.getElementById("floaters");
+  const set = isDate ? ["💗", "💕", "💖", "🌸", "💘"] : ["⭐", "✨", "🎈", "💛", "🙌"];
+  for (let i = 0; i < 16; i++) {
+    const h = document.createElement("i");
+    h.textContent = set[i % set.length];
+    h.style.left = Math.random() * 100 + "vw";
+    h.style.fontSize = (14 + Math.random() * 22) + "px";
+    h.style.animationDuration = (10 + Math.random() * 10) + "s";
+    h.style.animationDelay = (-Math.random() * 18) + "s";
+    box.appendChild(h);
+  }
+}
+
+function confetti(isDate) {
+  const colors = isDate ? ["#e8436f", "#ff7aa2", "#ffc2d1", "#ffd166", "#ffffff", "#c77dff"]
+                        : ["#2f7de1", "#f7b733", "#5ad1a6", "#ffffff", "#ff7aa2"];
+  for (let i = 0; i < 120; i++) {
+    const c = document.createElement("i");
+    c.className = "confetti";
+    c.style.left = Math.random() * 100 + "vw";
+    c.style.background = colors[i % colors.length];
+    if (i % 3 === 0) c.style.borderRadius = "50%";
+    c.style.setProperty("--dx", (Math.random() * 220 - 110) + "px");
+    c.style.setProperty("--rot", (Math.random() * 900 - 450) + "deg");
+    c.style.animationDuration = (2.2 + Math.random() * 1.8) + "s";
+    c.style.animationDelay = (Math.random() * .4) + "s";
+    document.body.appendChild(c);
+    setTimeout(() => c.remove(), 5000);
+  }
+}
+
+// ---------- 1. Конверт ----------
+function showEnvelope(inv, p) {
+  const isDate = inv.k !== "friend";
+  stage.innerHTML = `
+    <div class="envelope-wrap" id="envwrap">
+      <p class="to hand">Тебе письмо! ${isDate ? "💌" : "✉️"}</p>
+      <p class="tap" style="animation:none;margin:-10px 0 18px">От кого: <b>${esc(inv.n || "секрет 🤫")}</b></p>
+      <div class="envelope" id="env" role="button" aria-label="Открыть конверт">
+        <div class="env-back"></div>
+        <div class="letter hand">${isDate ? "♥" : "★"}</div>
+        <div class="env-front"></div>
+        <div class="env-bottom"></div>
+        <div class="flap"></div>
+        <div class="seal">${isDate ? "💗" : "⭐"}</div>
+      </div>
+      <p class="tap">Нажми, чтобы открыть</p>
+    </div>`;
+  document.getElementById("env").addEventListener("click", () => {
+    const env = document.getElementById("env");
+    if (env.classList.contains("open")) return;
+    env.classList.add("open");
+    buzz(20);
+    setTimeout(() => document.getElementById("envwrap").classList.add("gone"), 1150);
+    setTimeout(() => showQuestion(inv, p), 1500);
+  });
+}
+
+// ---------- 2. Открытка с вопросом ----------
+const NO_TEXTS = ["Нет", "Точно? 🤨", "Подумай ещё", "Не-а 😏", "Ну пожалуйста 🥺", "Не догонишь!", "Это не та кнопка 😅", "Последний шанс…"];
+let tries = 0;
+
+function dodge(e) {
+  if (e) { e.preventDefault(); e.stopPropagation(); }
+  const no = document.getElementById("no");
+  const yes = document.getElementById("yes");
+  tries += 1;
+  no.textContent = NO_TEXTS[tries % NO_TEXTS.length];
+  yes.style.transform = `scale(${Math.min(1 + tries * 0.12, 1.9)})`;
+  const pad = 14, w = no.offsetWidth, h = no.offsetHeight, yr = yes.getBoundingClientRect();
+  let x, y, guard = 0;
+  do {
+    x = pad + Math.random() * (innerWidth - w - pad * 2);
+    y = pad + Math.random() * (innerHeight - h - pad * 2);
+    guard += 1;
+  } while (guard < 40 && x < yr.right + 20 && x + w > yr.left - 20 && y < yr.bottom + 20 && y + h > yr.top - 20);
+  no.style.position = "fixed";
+  no.style.left = x + "px";
+  no.style.top = y + "px";
+  buzz(12);
+  if (tries === 2) document.getElementById("hint").textContent = "Кажется, вариант только один 😉";
+}
+
+function showQuestion(inv, p) {
+  const isDate = inv.k !== "friend";
+  const when = whenText(inv.w);
+  const photo = p && p.photos && p.photos[0] ? `<img src="${esc(p.photos[0])}" alt="" onerror="this.remove()">` : "";
+  stage.innerHTML = `
+    <div class="postcard">
+      <div class="stamp">${isDate ? "💘" : "🎈"}</div>
+      <p class="from hand">От: ${esc(inv.n || "кого-то особенного")}</p>
+      <h1 class="question hand">${isDate ? "Ты пойдёшь со мной на свидание?" : "Пойдёшь со мной сюда?"}</h1>
+      ${p ? `<div class="polaroid"><div class="pic">${isDate ? "💗" : "📍"}${photo}</div>
+              <div class="cap hand">${esc(p.name)}</div></div>` : ""}
+      <p class="meta">${p ? `📍 <b>${esc([p.address, p.city].filter(Boolean).join(", ") || p.city || "")}</b>` : ""}
+        ${when ? `<br>📅 <b>${esc(cap(when))}</b>` : ""}</p>
+      <div class="answers">
+        <button class="yes" id="yes">${isDate ? "Да ❤️" : "Да! 🙌"}</button>
+        <button class="no" id="no">Нет</button>
+      </div>
+      <div class="hint hand" id="hint"></div>
+    </div>`;
+  const no = document.getElementById("no");
+  // Кнопку «Нет» нажать нельзя: она убегает от пальца и от мышки
+  ["pointerdown", "mouseenter", "click"].forEach((ev) => no.addEventListener(ev, dodge));
+  no.addEventListener("touchstart", dodge, { passive: false });
+  document.getElementById("yes").addEventListener("click", () => showTicket(inv, p));
+}
+
+// ---------- 3. Билет после «Да» ----------
+function showTicket(inv, p) {
+  const isDate = inv.k !== "friend";
+  const when = whenText(inv.w);
+  const pickup = inv.m === "pickup";
+  const reply = inv.u ? `https://t.me/${encodeURIComponent(inv.u)}` : null;
+  confetti(isDate);
+  buzz([30, 40, 30]);
+  document.querySelectorAll(".no").forEach((b) => b.remove());
+  const rows = [
+    p && ["📍", esc(p.name), esc([p.address, p.city].filter(Boolean).join(", "))],
+    ["📅", when ? esc(cap(when)) : "Время уточним", when ? "Дата и время" : `${esc(inv.n || "")} напишет, когда`],
+    pickup ? ["🚗", `${esc(inv.n || "Тебя")} заберёт тебя`, "Просто будь готов(а) к этому времени 😉"]
+           : ["🤝", "Встречаемся на месте", "Маршрут — в кнопках ниже"],
+  ].filter(Boolean);
+  stage.innerHTML = `
+    <p class="yay hand">Ура!!! ${isDate ? "🥰" : "🥳"}</p>
+    <div class="ticket">
+      <div class="main">
+        <h2 class="hand">${isDate ? "Билет на свидание" : "Билет на встречу"}</h2>
+        <p class="sub">${isDate ? "Только для нас двоих 💕" : "Ты + я = отличный план"}</p>
+        ${rows.map(([i, t, s]) => `<div class="trow"><span class="i">${i}</span><div><b>${t}</b><small>${s}</small></div></div>`).join("")}
+        <div class="barcode"></div>
+      </div>
+      <div class="stub"><span>${isDate ? "ADMIT · 2" : "ДВОЕ · ИДУТ"}</span>${isDate ? "💘" : "🎈"}</div>
+    </div>
+    <div class="btns">
+      ${reply ? `<a class="btn tg" href="${reply}">✈️ Ответить «Да!» в Telegram</a>` : ""}
+      ${p ? `<div class="row2"><a class="btn ya" href="${yandex(p)}" target="_blank" rel="noopener">🗺 Яндекс</a>
+             <a class="btn gm" href="${google(p)}" target="_blank" rel="noopener">📍 Google</a></div>` : ""}
+      <a class="btn ghost" href="https://t.me/${BOT}">✨ Найти ещё места</a>
+    </div>
+    ${reply ? "" : `<p class="note hand">Не забудь ответить — ${esc(inv.n || "тебя")} ждёт 😉</p>`}`;
+}
+
+(async () => {
+  const inv = readInvite();
+  if (!inv) {
+    floaters(true);
+    stage.innerHTML = `<div class="postcard"><h1 class="question hand">Письмо потерялось 🥲</h1>
+      <p class="meta">Похоже, ссылка обрезалась. Попроси прислать её ещё раз.</p></div>`;
+    return;
+  }
+  const isDate = inv.k !== "friend";
+  if (!isDate) document.documentElement.classList.add("friend");
+  floaters(isDate);
+  // Место берём из самой ссылки; из базы — только фото, если место там ещё есть
+  let place = inv.pn ? { name: inv.pn, address: inv.pa, city: inv.pc, lat: inv.la, lon: inv.lo, photos: [] } : null;
+  showEnvelope(inv, place);
+  try {
+    const data = await (await fetch("places.json")).json();
+    const found = (data.places || []).find((x) => x.id === inv.p && (!place || x.name === place.name));
+    if (found && place) place.photos = found.photos || [];
+    else if (found) place = found;
+  } catch {}
+})();
+</script>
+</body>
+</html>

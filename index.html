@@ -250,6 +250,16 @@
   .browser-back { display: none; margin-bottom: 12px; }
   :root:not(.tg) .browser-back.visible { display: inline-block; }
 
+  /* Окно приглашения */
+  .kinds { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin: 14px 0 6px; }
+  .kind { padding: 16px 10px; border-radius: 18px; background: rgba(255, 255, 255, .08); color: var(--text);
+    border: 2px solid transparent; font-weight: 600; }
+  .kind span { display: block; font-size: 30px; margin-bottom: 4px; }
+  .kind.on { border-color: #ff5ca8; background: rgba(255, 92, 168, .18); }
+  .invite-row { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+  .invite-note { font-size: 13px; color: var(--hint); margin: 12px 2px; }
+  .btn.love { background: linear-gradient(135deg, #ff4f9a, #ff2d6f); color: #fff; }
+
   /* Кнопки карт */
   .maps { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 12px; }
   .map-btn { display: flex; align-items: center; justify-content: center; gap: 8px; padding: 13px 8px; border-radius: 16px;
@@ -462,7 +472,7 @@ const tagLabel = (t) => `${TAGS[t] || "🏷"} ${t}`;
 let botName = "";
 let places = [];
 let favs = new Set();
-let stats = { viewed: [], bookings: 0, reviews: 0, cities: [] };
+let stats = { viewed: [], bookings: 0, reviews: 0, cities: [], invites: 0 };
 let city = null;
 let state = { view: "home", tab: "home" };
 const stack = [];
@@ -603,6 +613,7 @@ function progress() {
   const inCat = (c) => viewed.filter((p) => p.category === c).length;
   return {
     viewed: viewed.length, favs: [...favs].filter(byId).length, bookings: stats.bookings, reviews: stats.reviews,
+    invites: stats.invites || 0,
     cities: new Set(viewed.map((p) => p.city)).size,
     coffee: inCat("Кофейни"), culture: inCat("Культура"), walks: inCat("Прогулки"),
   };
@@ -619,6 +630,7 @@ const ACHIEVEMENTS = [
   { emoji: "🎯", anim: "1f3af", title: "Планировщик", text: "Собрать текст брони", key: "bookings", goal: 1, color: "#ffd9e6" },
   { emoji: "✍️", anim: "270d_fe0f", title: "Голос города", text: "Оставить отзыв", key: "reviews", goal: 1, color: "#d9f1ff" },
   { emoji: "✈️", anim: "2708_fe0f", title: "Путешественник", text: "Места в 2 городах", key: "cities", goal: 2, color: "#e8e1ff" },
+  { emoji: "💘", anim: "1f498", title: "Сердцеед", text: "Отправить приглашение", key: "invites", goal: 1, color: "#ffd6e7" },
 ];
 
 function achievements() {
@@ -839,6 +851,7 @@ const views = {
           <button class="action press" data-fav="${p.id}"><span>${fav ? "❤️" : "🤍"}</span>${fav ? "В избранном" : "Сохранить"}</button>
           ${tel ? `<a class="action press" href="tel:${esc(tel)}"><span>📞</span>Позвонить</a>` : ""}
           ${siteUrl ? `<button class="action press" data-link="${esc(siteUrl)}"><span>🌐</span>Сайт</button>` : ""}
+          <button class="action press" data-invite="${p.id}"><span>💌</span>Позвать</button>
           <button class="action press" data-share="${p.id}"><span>📤</span>Поделиться</button>
         </div>
 
@@ -1021,6 +1034,16 @@ document.addEventListener("click", async (e) => {
     track(() => { stats.reviews += 1; });
     return openLink(`https://t.me/${botName}?start=review_${d.review}`);
   }
+  if (d.invite) return openInvite(byId(+d.invite));
+  if (d.inviteKind) {
+    document.querySelectorAll("[data-invite-kind]").forEach((b) => b.classList.toggle("on", b === el));
+    return haptic("soft");
+  }
+  if (d.inviteMeet) {
+    document.querySelectorAll("[data-invite-meet]").forEach((b) => b.classList.toggle("on", b === el));
+    return haptic("soft");
+  }
+  if (d.inviteSend) return sendInvite(byId(+d.inviteSend));
   if (d.share) {
     const p = byId(+d.share);
     const text = `${p.name} — ${p.address || p.city}. Нашёл в боте «Куда сходить»`;
@@ -1051,6 +1074,71 @@ document.addEventListener("click", async (e) => {
   }
 });
 
+
+
+// ---------- Приглашение-открытка (по желанию) ----------
+
+function openInvite(p) {
+  if (!p) return;
+  const overlay = document.getElementById("overlay");
+  const name = me.first_name === "Гость" ? "" : me.first_name;
+  overlay.innerHTML = `
+    <div class="backdrop" data-close></div>
+    <div class="modal">
+      <div class="grip"></div>
+      <h2>💌 Позвать в «${esc(p.name)}»</h2>
+      <p class="muted" style="margin:0">Отправим милую открытку — ответить «нет» там не получится 😉</p>
+      <div class="kinds">
+        <button class="kind press on" data-invite-kind="date"><span>💘</span>На свидание</button>
+        <button class="kind press" data-invite-kind="friend"><span>🤝</span>Другу</button>
+      </div>
+      <div class="invite-row">
+        <div><label>Дата (можно пропустить)</label><input class="field" type="date" id="inv-date"></div>
+        <div><label>Время</label><input class="field" type="time" id="inv-time"></div>
+      </div>
+      <label>Как встречаемся</label>
+      <div class="kinds" style="margin-top:0">
+        <button class="kind press on" data-invite-meet="meet"><span>📍</span>Встретимся там</button>
+        <button class="kind press" data-invite-meet="pickup"><span>🚗</span>Я заберу</button>
+      </div>
+      <label>Как подписать</label><input class="field" id="inv-name" value="${esc(name)}" placeholder="Твоё имя">
+      <p class="invite-note">${me.username ? "В открытке будет кнопка «Ответить в Telegram» — она ведёт в чат с тобой." :
+        "У тебя нет @username в Telegram, поэтому ответить тебе из открытки не получится — тебе напишут сами."}</p>
+      <button class="btn love press" data-invite-send="${p.id}">Отправить открытку 💌</button>
+    </div>`;
+  haptic();
+}
+
+function inviteLink(p) {
+  const kind = document.querySelector("[data-invite-kind].on")?.dataset.inviteKind || "date";
+  const date = document.getElementById("inv-date").value;
+  const time = document.getElementById("inv-time").value;
+  const data = {
+    p: p.id, k: kind, n: document.getElementById("inv-name").value.trim().slice(0, 30) || "Кто-то",
+    m: document.querySelector("[data-invite-meet].on")?.dataset.inviteMeet || "meet",
+    u: me.username || "", w: date || time ? `${date}T${time}` : "",
+    pn: p.name, pa: p.address || "", pc: p.city, la: p.lat || null, lo: p.lon || null,
+  };
+  const bytes = new TextEncoder().encode(JSON.stringify(data));
+  const b64 = btoa(String.fromCharCode(...bytes)).replace(/\+/g, "-").replace(/\//g, "_").replace(/=+$/, "");
+  return { url: new URL("invite.html", location.href).href.split("#")[0] + "#" + b64, kind };
+}
+
+async function sendInvite(p) {
+  if (!p) return;
+  const { url, kind } = inviteLink(p);
+  const text = kind === "date" ? "💌 У меня для тебя кое-что есть… Открой 👀" : "👀 Смотри, куда я тебя зову!";
+  track(() => { stats.invites = (stats.invites || 0) + 1; });
+  document.getElementById("overlay").innerHTML = "";
+  if (inTelegram) {
+    // Обычное окно Telegram «Переслать» — человек сам выбирает, кому отправить
+    tg.openTelegramLink(`https://t.me/share/url?url=${encodeURIComponent(url)}&text=${encodeURIComponent(text)}`);
+  } else if (navigator.share) {
+    try { await navigator.share({ title: "💌 Приглашение", text, url }); } catch {}
+  } else {
+    try { await navigator.clipboard.writeText(url); toast("🔗 Ссылка на открытку скопирована"); } catch { window.open(url, "_blank"); }
+  }
+}
 
 // ---------- Скелетон, интро, конфетти ----------
 
