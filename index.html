@@ -249,6 +249,87 @@
   #toast.show { transform: translateX(-50%); opacity: 1; }
   .browser-back { display: none; margin-bottom: 12px; }
   :root:not(.tg) .browser-back.visible { display: inline-block; }
+
+  /* ---------- Анимации и новый дизайн ---------- */
+  .anim { width: 1em; height: 1em; display: inline-block; vertical-align: -0.12em; object-fit: contain; }
+  .cover .cover-emoji { width: 46%; height: 46%; max-width: 110px; max-height: 110px; position: relative;
+    filter: drop-shadow(0 6px 12px rgba(0,0,0,.25)); }
+  .cover img.photo { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
+  .cat .emoji { font-size: 34px; line-height: 1; }
+  .cat .emoji .anim { width: 40px; height: 40px; }
+  .cat { box-shadow: 0 10px 24px -10px rgba(0,0,0,.45); }
+  .cat::after { content: ""; position: absolute; inset: 0; background: linear-gradient(120deg, transparent 30%, rgba(255,255,255,.22) 50%, transparent 70%);
+    transform: translateX(-120%); animation: shine 4.5s ease-in-out infinite; animation-delay: calc(var(--i, 0) * .35s); }
+  @keyframes shine { 0%, 70% { transform: translateX(-120%); } 100% { transform: translateX(120%); } }
+
+  .hero { position: relative; overflow: hidden; border-radius: 28px; padding: 16px 16px 22px; margin: 0 -4px;
+    color: #fff; isolation: isolate; box-shadow: 0 16px 40px -18px rgba(90, 60, 255, .6); }
+  .aurora { position: absolute; inset: -40%; z-index: -1;
+    background: conic-gradient(from 0deg, #7b5cff, #ff5ca8, #ffb347, #34c7a8, #4a8cff, #7b5cff);
+    filter: blur(40px) saturate(1.2); animation: spin 14s linear infinite; }
+  .hero::before { content: ""; position: absolute; inset: 0; z-index: -1; background: rgba(10, 10, 30, .25); }
+  @keyframes spin { to { transform: rotate(360deg); } }
+  .hero h1 { color: #fff; margin-top: 4px; text-shadow: 0 2px 12px rgba(0,0,0,.2); }
+  .hero .wave { width: 34px; height: 34px; vertical-align: -6px; }
+  .hero-sub { margin: 8px 0 0; color: rgba(255,255,255,.85); max-width: 74%; }
+  .hero .topbar { margin-bottom: 14px; }
+  .glass { background: rgba(255,255,255,.18) !important; color: #fff !important; backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px); box-shadow: none !important; }
+  .glass span { color: rgba(255,255,255,.75) !important; }
+  .floaty { position: absolute; z-index: 0; opacity: .9; animation: float 6s ease-in-out infinite; pointer-events: none; }
+  .floaty .anim { width: 34px; height: 34px; }
+  .f1 { right: 22px; top: 70px; } .f2 { right: 90px; top: 112px; animation-delay: -2s; } .f3 { right: 36px; top: 140px; animation-delay: -4s; }
+  .f2 .anim { width: 26px; height: 26px; } .f3 .anim { width: 30px; height: 30px; }
+  @keyframes float { 0%, 100% { transform: translateY(0) rotate(0); } 50% { transform: translateY(-10px) rotate(8deg); } }
+
+  .stagger { animation: rise .45s cubic-bezier(.2,.8,.2,1) both; animation-delay: calc(var(--i, 0) * 45ms); }
+  @keyframes rise { from { opacity: 0; transform: translateY(14px) scale(.98); } to { opacity: 1; transform: none; } }
+  .row-card:active, .tile:active, .cat:active { transform: scale(.97); }
+
+  .ach .emoji .anim { width: 32px; height: 32px; }
+
+  /* Скелетон во время загрузки */
+  .sk { background: linear-gradient(90deg, var(--bg) 25%, color-mix(in srgb, var(--hint) 18%, var(--bg)) 50%, var(--bg) 75%);
+    background-size: 300% 100%; animation: shimmer 1.3s infinite; border-radius: 18px; }
+  @keyframes shimmer { from { background-position: 100% 0; } to { background-position: 0 0; } }
+
+  /* Интро */
+  .intro { position: fixed; inset: 0; z-index: 50; color: #fff; display: flex; flex-direction: column; background: #2b2170;
+    padding: calc(24px + var(--top-inset)) 24px calc(24px + var(--bottom-inset)); overflow: hidden; animation: fadeOnly .3s; }
+  .intro .aurora { inset: -60%; filter: blur(60px); }
+  .intro::before { content: ""; position: absolute; inset: 0; z-index: -1; background: rgba(8, 8, 28, .35); }
+  .intro .skip { align-self: flex-end; color: rgba(255,255,255,.8); font-size: 15px; padding: 6px 10px; }
+  /* Слайды шириной во весь экран, чтобы соседний не выглядывал из-за отступов */
+  .slides { flex: 1; display: flex; margin: 0 -24px; transition: transform .45s cubic-bezier(.2,.8,.2,1); }
+  .slide { flex: none; width: 100%; display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; padding: 0 32px; }
+  .slide .big-anim { width: 150px; height: 150px; margin-bottom: 26px; filter: drop-shadow(0 14px 28px rgba(0,0,0,.35)); animation: bob 3s ease-in-out infinite; }
+  .slide h2 { font-size: 30px; color: #fff; margin-bottom: 10px; }
+  .slide p { margin: 0; font-size: 17px; color: rgba(255,255,255,.88); max-width: 320px; }
+  @keyframes bob { 0%, 100% { transform: translateY(0) scale(1); } 50% { transform: translateY(-12px) scale(1.04); } }
+  .dots { display: flex; justify-content: center; gap: 8px; margin: 18px 0; }
+  .dots i { width: 8px; height: 8px; border-radius: 9px; background: rgba(255,255,255,.4); transition: .3s; }
+  .dots i.on { width: 26px; background: #fff; }
+  .intro .next { width: 100%; max-width: 420px; align-self: center; padding: 16px; border-radius: 16px; font-weight: 700;
+    font-size: 17px; background: #fff; color: #3a2a99; box-shadow: 0 10px 30px rgba(0,0,0,.25); }
+
+  /* Конфетти и окно достижения */
+  .confetti { position: fixed; top: -12px; z-index: 60; width: 9px; height: 14px; border-radius: 2px; pointer-events: none;
+    animation: fall linear forwards; }
+  @keyframes fall { to { transform: translate(var(--dx), 110vh) rotate(var(--rot)); opacity: .9; } }
+  .ach-pop { position: fixed; left: 50%; top: 50%; z-index: 61; transform: translate(-50%, -50%) scale(.6); opacity: 0;
+    background: var(--bg); color: var(--text); border-radius: 28px; padding: 26px 30px; text-align: center; min-width: 240px;
+    box-shadow: 0 30px 80px rgba(0,0,0,.45); animation: pop .5s cubic-bezier(.2,1.4,.4,1) forwards; }
+  .ach-pop .anim { width: 96px; height: 96px; margin-bottom: 10px; }
+  .ach-pop small { display: block; color: var(--hint); text-transform: uppercase; letter-spacing: .08em; font-size: 12px; }
+  .ach-pop b { display: block; font-size: 22px; margin: 4px 0; }
+  @keyframes pop { to { transform: translate(-50%, -50%) scale(1); opacity: 1; } }
+
+  /* Фото места чуть «отъезжает» при прокрутке */
+  .gallery .cover img.photo { transform: translateY(calc(var(--scroll, 0) * .35px)) scale(1.08); }
+
+  @media (prefers-reduced-motion: reduce) {
+    *, *::before, *::after { animation: none !important; transition: none !important; }
+  }
 </style>
 </head>
 <body>
@@ -265,10 +346,10 @@ if (inTelegram) {
   tg.ready();
   tg.expand();
   const mobile = ["ios", "android", "android_x"].includes(tg.platform);
-  // На весь экран — только на телефонах: на компьютере это растянуло бы окно Telegram
-  if (mobile && tg.isVersionAtLeast("8.0")) {
+  // На весь экран (Telegram 8.0+), на телефоне ещё и без поворота экрана
+  if (tg.isVersionAtLeast("8.0")) {
     try { tg.requestFullscreen(); } catch {}
-    try { tg.lockOrientation(); } catch {}
+    if (mobile) { try { tg.lockOrientation(); } catch {} }
   }
   // Чтобы приложение не закрывалось, когда листаешь список вниз
   if (tg.isVersionAtLeast("7.7")) {
@@ -282,16 +363,22 @@ if (inTelegram) {
 const me = (inTelegram && tg.initDataUnsafe.user) || { first_name: "Гость" };
 
 const DATE_CATEGORY = "Для свидания";
+// Анимированные эмодзи Google Noto (лицензия CC BY 4.0); если не загрузятся — покажется обычный эмодзи
+const NOTO = "https://fonts.gstatic.com/s/e/notoemoji/latest/";
+function anim(code, fallback, cls = "anim") {
+  return `<img class="${cls}" src="${NOTO}${code}/512.webp" alt="${fallback}" loading="lazy" decoding="async"
+    onerror="this.replaceWith(document.createTextNode('${fallback}'))">`;
+}
 const CATS = {
-  "Кофейни":     { emoji: "☕", grad: "linear-gradient(135deg,#c87941,#7a3e1d)" },
-  "Активности":  { emoji: "🧗", grad: "linear-gradient(135deg,#ff7a45,#ff3d71)" },
-  "Еда":         { emoji: "🍽", grad: "linear-gradient(135deg,#ffb347,#ff6a3d)" },
-  "Культура":    { emoji: "🎭", grad: "linear-gradient(135deg,#7b5cff,#4b33c9)" },
-  "Прогулки":    { emoji: "🌳", grad: "linear-gradient(135deg,#34c77b,#119a8a)" },
-  "Вечер":       { emoji: "🌙", grad: "linear-gradient(135deg,#3a4a8c,#141a3d)" },
-  [DATE_CATEGORY]: { emoji: "💘", grad: "linear-gradient(135deg,#ff5ca8,#c2185b)" },
+  "Кофейни":     { emoji: "☕", anim: "2615", grad: "linear-gradient(135deg,#d08a4f,#7a3e1d)" },
+  "Активности":  { emoji: "🎢", anim: "1f3a2", grad: "linear-gradient(135deg,#ff8a45,#ff3d71)" },
+  "Еда":         { emoji: "🍽", anim: "1f37d_fe0f", grad: "linear-gradient(135deg,#ffc04d,#ff6a3d)" },
+  "Культура":    { emoji: "🎭", anim: "1f3ad", grad: "linear-gradient(135deg,#8d6bff,#4b33c9)" },
+  "Прогулки":    { emoji: "🌲", anim: "1f332", grad: "linear-gradient(135deg,#3fd98a,#0f8f80)" },
+  "Вечер":       { emoji: "🌜", anim: "1f31c", grad: "linear-gradient(135deg,#4a5bb0,#141a3d)" },
+  [DATE_CATEGORY]: { emoji: "💘", anim: "1f498", grad: "linear-gradient(135deg,#ff6cb5,#c2185b)" },
 };
-const catInfo = (c) => CATS[c] || { emoji: "📍", grad: "linear-gradient(135deg,#8e9eab,#5b6b78)" };
+const catInfo = (c) => CATS[c] || { emoji: "✨", anim: "2728", grad: "linear-gradient(135deg,#8e9eab,#5b6b78)" };
 const CITY_GRADS = ["linear-gradient(135deg,#ff5f6d,#ffc371)", "linear-gradient(135deg,#36d1dc,#5b86e5)",
                     "linear-gradient(135deg,#11998e,#38ef7d)", "linear-gradient(135deg,#7b5cff,#ff5ca8)"];
 const AVATAR_GRADS = ["linear-gradient(135deg,#ff8a65,#ff5252)", "linear-gradient(135deg,#7986cb,#3f51b5)",
@@ -384,8 +471,8 @@ function avatarHtml(name, photo, cls = "") {
 function coverHtml(p, photoIdx = 0, extra = "") {
   const info = catInfo(p.category);
   const photo = p.photos && p.photos[photoIdx];
-  return `<div class="cover" style="background:${info.grad}">${info.emoji}
-    ${photo ? `<img src="${esc(photo)}" alt="" loading="lazy" onerror="this.remove()">` : ""}${extra}</div>`;
+  return `<div class="cover" style="background:${info.grad}">${anim(info.anim, info.emoji, "anim cover-emoji")}
+    ${photo ? `<img class="photo" src="${esc(photo)}" alt="" loading="lazy" onerror="this.remove()">` : ""}${extra}</div>`;
 }
 
 // ---------- Хранилище: облако Telegram, вне Telegram — браузер ----------
@@ -424,13 +511,17 @@ const inCity = () => places.filter((p) => p.city === city);
 function categories() {
   const list = [];
   for (const p of inCity()) if (!list.includes(p.category) && p.category !== DATE_CATEGORY) list.push(p.category);
-  if (inCity().some((p) => p.audience.includes("пара"))) list.push(DATE_CATEGORY);
+  if (inCity().some(isDateSpot)) list.push(DATE_CATEGORY);
   return list;
 }
 
+// Для свидания: проверенные места «для пары» и романтичные по теме
+const DATE_TAGS = ["виды", "театр", "сад", "терраса", "кино", "каток", "парк развлечений", "планетарий"];
+const isDateSpot = (p) => p.audience.includes("пара") && (isVerified(p) || (p.tags || []).some((t) => DATE_TAGS.includes(t)));
+
 function inCategory(cat) {
   return cat === DATE_CATEGORY
-    ? inCity().filter((p) => p.audience.includes("пара"))
+    ? inCity().filter(isDateSpot)
     : inCity().filter((p) => p.category === cat);
 }
 
@@ -463,16 +554,16 @@ function progress() {
 }
 
 const ACHIEVEMENTS = [
-  { emoji: "👋", title: "Первый шаг", text: "Открыть приложение", key: null, goal: 1, color: "#ffe9a8" },
-  { emoji: "🔎", title: "Любопытный", text: "Открыть 5 мест", key: "viewed", goal: 5, color: "#cfe4ff" },
-  { emoji: "🧭", title: "Исследователь", text: "Открыть 20 мест", key: "viewed", goal: 20, color: "#d4f5e4" },
-  { emoji: "☕", title: "Кофеман", text: "Заглянуть в 3 кофейни", key: "coffee", goal: 3, color: "#f3dcc8" },
-  { emoji: "🎭", title: "Ценитель", text: "Открыть 3 музея", key: "culture", goal: 3, color: "#e2dbff" },
-  { emoji: "🌳", title: "Гуляка", text: "Открыть 3 места для прогулок", key: "walks", goal: 3, color: "#d4f5e4" },
-  { emoji: "⭐", title: "Коллекционер", text: "Сохранить 5 мест", key: "favs", goal: 5, color: "#fff1b8" },
-  { emoji: "📝", title: "Планировщик", text: "Собрать текст брони", key: "bookings", goal: 1, color: "#ffd9e6" },
-  { emoji: "✍️", title: "Голос города", text: "Оставить отзыв", key: "reviews", goal: 1, color: "#d9f1ff" },
-  { emoji: "✈️", title: "Путешественник", text: "Места в 2 городах", key: "cities", goal: 2, color: "#e8e1ff" },
+  { emoji: "👋", anim: "1f44b", title: "Первый шаг", text: "Открыть приложение", key: null, goal: 1, color: "#ffe9a8" },
+  { emoji: "🔎", anim: "1f50e", title: "Любопытный", text: "Открыть 5 мест", key: "viewed", goal: 5, color: "#cfe4ff" },
+  { emoji: "🌍", anim: "1f30d", title: "Исследователь", text: "Открыть 20 мест", key: "viewed", goal: 20, color: "#d4f5e4" },
+  { emoji: "☕", anim: "2615", title: "Кофеман", text: "Заглянуть в 3 кофейни", key: "coffee", goal: 3, color: "#f3dcc8" },
+  { emoji: "🎭", anim: "1f3ad", title: "Ценитель", text: "Открыть 3 музея", key: "culture", goal: 3, color: "#e2dbff" },
+  { emoji: "🌲", anim: "1f332", title: "Гуляка", text: "Открыть 3 места для прогулок", key: "walks", goal: 3, color: "#d4f5e4" },
+  { emoji: "⭐", anim: "2b50", title: "Коллекционер", text: "Сохранить 5 мест", key: "favs", goal: 5, color: "#fff1b8" },
+  { emoji: "🎯", anim: "1f3af", title: "Планировщик", text: "Собрать текст брони", key: "bookings", goal: 1, color: "#ffd9e6" },
+  { emoji: "✍️", anim: "270d_fe0f", title: "Голос города", text: "Оставить отзыв", key: "reviews", goal: 1, color: "#d9f1ff" },
+  { emoji: "✈️", anim: "2708_fe0f", title: "Путешественник", text: "Места в 2 городах", key: "cities", goal: 2, color: "#e8e1ff" },
 ];
 
 function achievements() {
@@ -489,7 +580,7 @@ function checkNewAchievements(before) {
   if (fresh) {
     const a = ACHIEVEMENTS.find((x) => x.title === fresh);
     if (inTelegram && tg.HapticFeedback) tg.HapticFeedback.notificationOccurred("success");
-    setTimeout(() => toast(`${a.emoji} Достижение: ${a.title}!`), 350);
+    setTimeout(() => { confetti(); achievementPopup(a); }, 350);
   }
 }
 
@@ -528,9 +619,9 @@ if (inTelegram) tg.BackButton.onClick(back);
 
 // ---------- Экраны ----------
 
-function rowCard(p) {
+function rowCard(p, i = 0) {
   const meta = [p.district, price(p)].filter(Boolean).join(" · ");
-  return `<button class="row-card press" data-place="${p.id}">
+  return `<button class="row-card press stagger" style="--i:${Math.min(i, 12)}" data-place="${p.id}">
     ${coverHtml(p)}
     <div class="info">
       <b>${esc(p.name)}</b>
@@ -542,9 +633,9 @@ function rowCard(p) {
   </button>`;
 }
 
-function tile(p) {
+function tile(p, i = 0) {
   const badge = p.rating ? `<span class="badge"><i>★</i>${p.rating.toFixed(1)}</span>` : "";
-  return `<button class="tile press" data-place="${p.id}">
+  return `<button class="tile press stagger" style="--i:${Math.min(i, 8)}" data-place="${p.id}">
     ${coverHtml(p, 0, badge)}
     <div class="body"><b>${esc(p.name)}</b><small>${esc([catInfo(p.category).emoji + " " + p.category, price(p)].filter(Boolean).join(" · "))}</small></div>
   </button>`;
@@ -559,12 +650,18 @@ const views = {
     for (const p of inCategory("Кофейни")) for (const t of p.tags || []) coffeeCount[t] = (coffeeCount[t] || 0) + 1;
     const coffeeTags = Object.keys(coffeeCount).sort((a, b) => coffeeCount[b] - coffeeCount[a]);
     const head = `
-      <div class="topbar">
-        <button class="city-pill press" data-cities>📍 ${esc(city)} <span>▼</span></button>
-        <button class="press" data-tab="profile">${avatarHtml(me.first_name, me.photo_url)}</button>
+      <div class="hero">
+        <div class="aurora"></div>
+        <div class="floaty f1">${anim("2728", "✨")}</div>
+        <div class="floaty f2">${anim("1f389", "🎉")}</div>
+        <div class="floaty f3">${anim("1f525", "🔥")}</div>
+        <div class="topbar">
+          <button class="city-pill glass press" data-cities>📍 ${esc(city)} <span>▼</span></button>
+          <button class="press" data-tab="profile">${avatarHtml(me.first_name, me.photo_url)}</button>
+        </div>
+        <h1>${greeting},<br>${esc(me.first_name)}! ${anim("1f44b", "👋", "anim wave")}</h1>
+        <p class="hero-sub">${plural(inCity().length, "место", "места", "мест")} в городе — куда сходим сегодня?</p>
       </div>
-      <h1>${greeting}, ${esc(me.first_name)}!</h1>
-      <p class="muted" style="margin:6px 0 0">Куда сходим сегодня?</p>
       <div class="search"><span>🔍</span><input id="search" placeholder="Спешелти, завтраки, музей…" value="${esc(state.query || "")}" autocomplete="off"></div>`;
 
     if (q) {
@@ -575,9 +672,9 @@ const views = {
     return head + `
       <h3>Категории</h3>
       <div class="cats">
-        ${categories().map((c) => `
-          <button class="cat press" style="background:${catInfo(c).grad}" data-cat="${esc(c)}">
-            <span class="emoji">${catInfo(c).emoji}</span>
+        ${categories().map((c, i) => `
+          <button class="cat press stagger" style="background:${catInfo(c).grad};--i:${i}" data-cat="${esc(c)}">
+            <span class="emoji">${anim(catInfo(c).anim, catInfo(c).emoji)}</span>
             <span><b>${esc(c)}</b><br><small>${plural(inCategory(c).length, "место", "места", "мест")}</small></span>
           </button>`).join("")}
       </div>
@@ -586,7 +683,7 @@ const views = {
       ${top.length ? `<h3>🔥 Рейтинг ${TOP}+ <small>${top.length}</small></h3><div class="carousel">${top.map(tile).join("")}</div>` : ""}
       <h3>Лучшие места <small>${inCity().length} всего</small></h3>
       ${inCity().sort(byRating).slice(0, 6).map(rowCard).join("")}
-      <p class="osm-note">Часть мест — из открытой карты © участники OpenStreetMap.<br>Рейтинг с пометкой «✓ Проверено» — по Яндекс Картам.</p>`;
+      <p class="osm-note">Часть мест — из открытой карты © участники OpenStreetMap.<br>Рейтинг с пометкой «✓ Проверено» — по Яндекс Картам.<br>Анимированные эмодзи — Google Noto Emoji, CC BY 4.0.</p>`;
   },
 
   list() {
@@ -648,7 +745,7 @@ const views = {
       <div class="achievements">
         ${ach.map((a) => `
           <div class="ach ${a.done ? "" : "locked"}">
-            <div class="emoji" style="background:${a.color}">${a.emoji}</div>
+            <div class="emoji" style="background:${a.color}">${a.done ? anim(a.anim, a.emoji) : a.emoji}</div>
             <b>${a.title}</b><small>${a.text}</small>
             ${a.goal > 1 && !a.done ? `<div class="progress"><i style="width:${a.value / a.goal * 100}%"></i></div><small style="margin-top:4px">${a.value} / ${a.goal}</small>` : ""}
             ${a.done ? `<small style="color:#34c77b;margin-top:6px">✓ Получено</small>` : ""}
@@ -897,8 +994,101 @@ document.addEventListener("click", async (e) => {
   }
 });
 
+
+// ---------- Скелетон, интро, конфетти ----------
+
+function skeleton() {
+  const row = `<div class="sk" style="height:86px;margin-bottom:10px"></div>`;
+  return `<div class="sk" style="height:190px;border-radius:28px;margin-bottom:16px"></div>
+    <div class="cats">${'<div class="sk" style="height:104px"></div>'.repeat(6)}</div>
+    <div style="height:20px"></div>${row.repeat(3)}`;
+}
+
+const INTRO = [
+  { anim: "1f929", emoji: "🤩", title: "Куда сходить?", text: "Тысячи кафе, музеев, парков и развлечений в 14 городах — всё в одном месте." },
+  { anim: "1f525", emoji: "🔥", title: "Только лучшее", text: "Фильтры по теме, бюджету и рейтингу. Места с пометкой «✓ Проверено» — с высоким рейтингом на картах." },
+  { anim: "1f3c6", emoji: "🏆", title: "Отзывы и награды", text: "Сохраняй места, собирай текст для брони в один тап, пиши отзывы и открывай достижения." },
+];
+
+function showIntro(done) {
+  let step = 0;
+  const el = document.createElement("div");
+  el.className = "intro";
+  el.innerHTML = `<div class="aurora"></div>
+    <button class="skip" data-intro-skip>Пропустить</button>
+    <div class="slides">${INTRO.map((s) => `<div class="slide">
+      <img class="big-anim" src="${NOTO}${s.anim}/512.webp" alt="${s.emoji}">
+      <h2>${s.title}</h2><p>${s.text}</p></div>`).join("")}</div>
+    <div class="dots">${INTRO.map(() => "<i></i>").join("")}</div>
+    <button class="next press" data-intro-next>Дальше</button>`;
+  document.body.appendChild(el);
+  const slides = el.querySelector(".slides");
+  const update = () => {
+    slides.style.transform = `translateX(${-step * 100}%)`;
+    el.querySelectorAll(".dots i").forEach((d, i) => d.classList.toggle("on", i === step));
+    el.querySelector(".next").textContent = step === INTRO.length - 1 ? "Начать 🚀" : "Дальше";
+  };
+  const finish = () => {
+    storeSet("intro", "1");
+    el.style.transition = "opacity .3s"; el.style.opacity = "0";
+    setTimeout(() => { el.remove(); done && done(); }, 300);
+  };
+  const go = (dir) => {
+    if (step + dir >= INTRO.length) return finish();
+    step = Math.max(0, step + dir);
+    haptic("soft");
+    update();
+  };
+  el.addEventListener("click", (e) => {
+    if (e.target.closest("[data-intro-skip]")) finish();
+    if (e.target.closest("[data-intro-next]")) go(1);
+  });
+  // Свайпы влево-вправо
+  let x0 = null;
+  el.addEventListener("touchstart", (e) => { x0 = e.touches[0].clientX; }, { passive: true });
+  el.addEventListener("touchend", (e) => {
+    if (x0 === null) return;
+    const dx = e.changedTouches[0].clientX - x0;
+    if (Math.abs(dx) > 40) go(dx < 0 ? 1 : -1);
+    x0 = null;
+  });
+  update();
+}
+
+function confetti() {
+  if (matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+  const colors = ["#ff5ca8", "#ffb800", "#7b5cff", "#34c77b", "#4a8cff", "#ff7a45"];
+  for (let i = 0; i < 70; i++) {
+    const c = document.createElement("i");
+    c.className = "confetti";
+    c.style.left = Math.random() * 100 + "vw";
+    c.style.background = colors[i % colors.length];
+    c.style.setProperty("--dx", (Math.random() * 160 - 80) + "px");
+    c.style.setProperty("--rot", (Math.random() * 720 - 360) + "deg");
+    c.style.animationDuration = (1.6 + Math.random() * 1.4) + "s";
+    c.style.animationDelay = (Math.random() * .3) + "s";
+    document.body.appendChild(c);
+    setTimeout(() => c.remove(), 3500);
+  }
+}
+
+function achievementPopup(a) {
+  const el = document.createElement("div");
+  el.className = "ach-pop";
+  el.innerHTML = `${anim(a.anim, a.emoji)}<small>Новое достижение</small><b>${a.title}</b><span class="muted">${a.text}</span>`;
+  document.body.appendChild(el);
+  setTimeout(() => { el.style.transition = "opacity .4s"; el.style.opacity = "0"; }, 2200);
+  setTimeout(() => el.remove(), 2700);
+}
+
+// Параллакс фото на странице места
+addEventListener("scroll", () => {
+  if (state.view === "place") document.documentElement.style.setProperty("--scroll", Math.min(scrollY, 400));
+}, { passive: true });
+
 // ---------- Старт ----------
 
+app.innerHTML = skeleton();
 (async () => {
   try {
     const res = await fetch("places.json?v=" + Date.now());
@@ -909,14 +1099,16 @@ document.addEventListener("click", async (e) => {
     app.innerHTML = `<div class="empty"><span class="big">😕</span>Не удалось загрузить места.<br>Попробуй позже.</div>`;
     return;
   }
-  const saved = await storeGet(["favs", "stats", "city"]);
+  const saved = await storeGet(["favs", "stats", "city", "intro"]);
   // Места, которых больше нет в базе, из избранного убираем
   favs = new Set(parse(saved.favs, []).filter(byId));
   stats = { ...stats, ...parse(saved.stats, {}) };
   const all = cities();
   city = all.includes(saved.city) ? saved.city : all[0];
   render();
-  if (!all.includes(saved.city) && all.length > 1) openCities();
+  const askCity = !all.includes(saved.city) && all.length > 1;
+  if (!saved.intro) showIntro(() => { if (askCity) openCities(); });
+  else if (askCity) openCities();
 })();
 </script>
 </body>
