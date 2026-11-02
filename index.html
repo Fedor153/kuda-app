@@ -338,6 +338,43 @@
   /* Фото места чуть «отъезжает» при прокрутке */
   .gallery .cover img.photo { transform: translateY(calc(var(--scroll, 0) * .35px)) scale(1.08); }
 
+
+  /* ---------- Свой фон: градиент от тёмно-фиолетового к ночному синему ----------
+     Задан поверх цветов Telegram, поэтому у всех пользователей приложение выглядит одинаково */
+  html:root:not(.x) {
+    --bg: rgba(255, 255, 255, .07);
+    --bg2: #120e26;
+    --text: #f4f2ff;
+    --hint: #a6a0c8;
+    --link: #a9c1ff;
+    --btn: #7b5cff;
+    --btn-text: #ffffff;
+    --line: rgba(255, 255, 255, .08);
+    --shadow: 0 8px 26px rgba(0, 0, 0, .35);
+    color-scheme: dark;
+  }
+  html, body { background: #120e26; }
+  body {
+    background: radial-gradient(120% 60% at 0% 0%, rgba(123, 92, 255, .35), transparent 60%),
+                radial-gradient(100% 50% at 100% 100%, rgba(40, 110, 255, .28), transparent 60%),
+                linear-gradient(180deg, #1a1433 0%, #0e1a2b 100%);
+    background-attachment: fixed;
+    min-height: 100vh;
+  }
+  .row-card, .card, .tile, .chip, .action, .btn, .stat, .ach, .search, .city-option, .score, .stepper, input.field, .tag {
+    border: 1px solid rgba(255, 255, 255, .06);
+    backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px);
+  }
+  .sheet { background: transparent; }
+  .modal { background: #1a1433; }
+  .tabbar { background: rgba(18, 14, 38, .78); }
+  .ach-pop { background: #241c45; }
+  .result { background: linear-gradient(135deg, rgba(123, 92, 255, .25), rgba(255, 255, 255, .06)); }
+  .sk { background: linear-gradient(90deg, rgba(255,255,255,.05) 25%, rgba(255,255,255,.12) 50%, rgba(255,255,255,.05) 75%);
+        background-size: 300% 100%; }
+  .stepper button { background: rgba(255, 255, 255, .08); }
+  .line .ico { background: rgba(255, 255, 255, .08); }
+
   @media (prefers-reduced-motion: reduce) {
     *, *::before, *::after { animation: none !important; transition: none !important; }
   }
@@ -366,10 +403,10 @@ if (inTelegram) {
   if (tg.isVersionAtLeast("7.7")) {
     try { tg.disableVerticalSwipes(); } catch {}
   }
-  try {
-    tg.setHeaderColor("secondary_bg_color");
-    tg.setBackgroundColor("secondary_bg_color");
-  } catch {}
+  // Шапка и фон Telegram вокруг приложения — в цвет нашего градиента
+  try { tg.setHeaderColor("#1a1433"); } catch {}
+  try { tg.setBackgroundColor("#120e26"); } catch {}
+  try { if (tg.isVersionAtLeast("7.10")) tg.setBottomBarColor("#0e1a2b"); } catch {}
 }
 const me = (inTelegram && tg.initDataUnsafe.user) || { first_name: "Гость" };
 
