@@ -281,6 +281,11 @@ const AUDIENCES = [["any", "С кем угодно"], ["один", "🙋 Оди�
 const MONTHS = ["января", "февраля", "марта", "апреля", "мая", "июня", "июля",
                 "августа", "сентября", "октября", "ноября", "декабря"];
 const TOP = 4.5;
+const TAGS = {
+  "спешелти": "🫘", "своя обжарка": "🔥", "завтраки": "🍳", "десерты": "🍰",
+  "для работы": "💻", "терраса": "🌿", "круглосуточно": "🌙", "необычные": "✨",
+};
+const tagLabel = (t) => `${TAGS[t] || "🏷"} ${t}`;
 
 let botName = "";
 let places = [];
@@ -307,6 +312,7 @@ const peopleWord = (n) => (n % 10 === 1 && n % 100 !== 11) || (n % 10 >= 2 && n 
 
 function price(p) {
   if (p.avg_check === 0) return "бесплатно";
+  if (p.avg_check && p.category === "Кофейни") return `☕ до ${p.avg_check} ₽`;
   if (p.avg_check) return `~${p.avg_check} ₽`;
   return "";
 }
@@ -407,6 +413,7 @@ function filtered() {
     if (f.who !== "any" && !p.audience.includes(f.who)) return false;
     if (f.district !== "any" && p.district !== f.district) return false;
     if (f.top && !(p.rating >= TOP)) return false;
+    if (f.tag && f.tag !== "any" && !(p.tags || []).includes(f.tag)) return false;
     return true;
   }).sort(byRating);
 }
@@ -518,6 +525,9 @@ const views = {
     const q = (state.query || "").trim().toLowerCase();
     const greeting = new Date().getHours() < 12 ? "Доброе утро" : new Date().getHours() < 18 ? "Добрый день" : "Добрый вечер";
     const top = inCity().filter((p) => p.rating >= TOP).sort(byRating).slice(0, 10);
+    const coffeeCount = {};
+    for (const p of inCategory("Кофейни")) for (const t of p.tags || []) coffeeCount[t] = (coffeeCount[t] || 0) + 1;
+    const coffeeTags = Object.keys(coffeeCount).sort((a, b) => coffeeCount[b] - coffeeCount[a]);
     const head = `
       <div class="topbar">
         <button class="city-pill press" data-cities>📍 ${esc(city)} <span>▼</span></button>
@@ -525,10 +535,10 @@ const views = {
       </div>
       <h1>${greeting}, ${esc(me.first_name)}!</h1>
       <p class="muted" style="margin:6px 0 0">Куда сходим сегодня?</p>
-      <div class="search"><span>🔍</span><input id="search" placeholder="Кофейня, музей, парк…" value="${esc(state.query || "")}" autocomplete="off"></div>`;
+      <div class="search"><span>🔍</span><input id="search" placeholder="Спешелти, завтраки, музей…" value="${esc(state.query || "")}" autocomplete="off"></div>`;
 
     if (q) {
-      const found = inCity().filter((p) => (p.name + " " + p.category + " " + p.description).toLowerCase().includes(q)).sort(byRating);
+      const found = inCity().filter((p) => (p.name + " " + p.category + " " + p.description + " " + (p.tags || []).join(" ")).toLowerCase().includes(q)).sort(byRating);
       return head + `<h3>Нашлось <small>${found.length}</small></h3>` +
         (found.length ? found.map(rowCard).join("") : `<div class="empty"><span class="big">🤷</span>Ничего не нашлось</div>`);
     }
@@ -541,6 +551,8 @@ const views = {
             <span><b>${esc(c)}</b><br><small>${plural(inCategory(c).length, "место", "места", "мест")}</small></span>
           </button>`).join("")}
       </div>
+      ${coffeeTags.length ? `<h3>☕ Кофейни по темам</h3><div class="chips">${coffeeTags.map((t) =>
+        `<button class="chip press" data-theme="${esc(t)}">${esc(tagLabel(t))}</button>`).join("")}</div>` : ""}
       ${top.length ? `<h3>🔥 Рейтинг ${TOP}+ <small>${top.length}</small></h3><div class="carousel">${top.map(tile).join("")}</div>` : ""}
       <h3>Все места <small>${inCity().length}</small></h3>
       ${inCity().sort(byRating).slice(0, 6).map(rowCard).join("")}`;
@@ -548,6 +560,9 @@ const views = {
 
   list() {
     const districts = [...new Set(inCategory(state.category).map((p) => p.district).filter(Boolean))].sort();
+    const tagCount = {};
+    for (const p of inCategory(state.category)) for (const t of p.tags || []) tagCount[t] = (tagCount[t] || 0) + 1;
+    const tags = Object.keys(tagCount).sort((a, b) => tagCount[b] - tagCount[a]);
     const chips = (key, options) => `<div class="chips">${options.map(([v, label]) =>
       `<button class="chip press ${state[key] === v ? "on" : ""}" data-filter="${key}" data-value="${esc(v)}">${esc(label)}</button>`
     ).join("")}</div>`;
@@ -555,6 +570,7 @@ const views = {
     return `
       <h2>${catInfo(state.category).emoji} ${esc(state.category)}</h2>
       <p class="muted" style="margin:0">${esc(city)} · сначала высокий рейтинг</p>
+      ${tags.length ? `<div class="flabel">Тема</div>${chips("tag", [["any", "Все"], ...tags.map((t) => [t, tagLabel(t)])])}` : ""}
       <div class="flabel">Фильтры</div>
       <div class="chips"><button class="chip gold press ${state.top ? "on" : ""}" data-toggle-top>★ ${TOP}+</button>
         ${BUDGETS.map(([v, l]) => `<button class="chip press ${state.budget === v ? "on" : ""}" data-filter="budget" data-value="${v}">${l}</button>`).join("")}</div>
@@ -619,7 +635,7 @@ const views = {
     const photos = p.photos.length ? p.photos : [null];
     const lines = [
       p.address && ["📍", esc(p.address)],
-      price(p) && ["💰", p.avg_check === 0 ? "Вход бесплатный" : `Средний чек ${price(p)}`],
+      price(p) && ["💰", p.avg_check === 0 ? "Вход бесплатный" : p.category === "Кофейни" ? `Капучино до ${p.avg_check} ₽` : `Средний чек ${price(p)}`],
       p.audience && ["👥", "Подойдёт: " + esc(p.audience)],
       p.phone && ["📞", esc(p.phone)],
     ].filter(Boolean);
@@ -631,7 +647,7 @@ const views = {
           <div><h2>${esc(p.name)}</h2><div class="muted">${esc(catInfo(p.category).emoji + " " + p.category)}</div></div>
           ${p.rating ? `<div class="score"><b>★ ${p.rating.toFixed(1)}</b><small>${p.reviews_count ? plural(p.reviews_count, "отзыв", "отзыва", "отзывов") : "рейтинг"}</small></div>` : ""}
         </div>
-        <div class="tags">${[p.city, p.district, p.photos.length > 1 ? `📷 ${p.photos.length} фото →` : ""].filter(Boolean).map((t) => `<span class="tag">${esc(t)}</span>`).join("")}</div>
+        <div class="tags">${[p.city, p.district, ...(p.tags || []).map(tagLabel), p.photos.length > 1 ? `📷 ${p.photos.length} фото →` : ""].filter(Boolean).map((t) => `<span class="tag">${esc(t)}</span>`).join("")}</div>
 
         <div class="actions">
           <button class="action press" data-fav="${p.id}"><span>${fav ? "❤️" : "🤍"}</span>${fav ? "В избранном" : "Сохранить"}</button>
@@ -775,7 +791,8 @@ document.addEventListener("click", async (e) => {
   if ("cities" in d) return openCities();
   if (d.city) return setCity(d.city);
   if (d.tab) return switchTab(d.tab);
-  if (d.cat) return go("list", { category: d.cat, budget: "any", who: "any", district: "any", top: false });
+  if (d.cat) return go("list", { category: d.cat, budget: "any", who: "any", district: "any", tag: "any", top: false });
+  if (d.theme) return go("list", { category: "Кофейни", budget: "any", who: "any", district: "any", tag: d.theme, top: false });
   if (d.go) return go(d.go);
   if (d.link) return openLink(d.link);
   if (d.place) {
