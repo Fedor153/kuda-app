@@ -15,108 +15,239 @@
     --link: var(--tg-theme-link-color, #2481cc);
     --btn: var(--tg-theme-button-color, #2481cc);
     --btn-text: var(--tg-theme-button-text-color, #ffffff);
-    --radius: 14px;
+    --line: color-mix(in srgb, var(--hint) 18%, transparent);
+    --gold: #ffb800;
+    --radius: 20px;
+    --shadow: 0 6px 24px rgba(0, 0, 0, .08);
   }
   @media (prefers-color-scheme: dark) {
     :root:not(.tg) {
-      --bg: #1c1c1e; --bg2: #000000; --text: #ffffff; --hint: #8e8e93;
-      --link: #64b5ef; --btn: #2ea6ff;
+      --bg: #1c1c1e; --bg2: #0f0f10; --text: #ffffff; --hint: #8e8e93;
+      --link: #64b5ef; --btn: #2ea6ff; --shadow: 0 6px 24px rgba(0, 0, 0, .35);
     }
   }
   * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
-  body {
-    margin: 0; background: var(--bg2); color: var(--text);
-    font: 16px/1.4 -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-  }
-  #app { max-width: 560px; margin: 0 auto; padding: 16px 16px 32px; }
-  h1 { font-size: 26px; margin: 4px 0 2px; }
-  h2 { font-size: 21px; margin: 0 0 12px; }
-  .sub { color: var(--hint); margin: 0 0 18px; }
-  .section { color: var(--hint); font-size: 13px; text-transform: uppercase; letter-spacing: .04em; margin: 18px 4px 8px; }
+  html, body { margin: 0; background: var(--bg2); color: var(--text); }
+  body { font: 16px/1.4 -apple-system, BlinkMacSystemFont, "SF Pro Text", "Segoe UI", Roboto, sans-serif; }
+  button { font: inherit; color: inherit; border: 0; background: none; padding: 0; cursor: pointer; }
+  #app { max-width: 560px; margin: 0 auto; padding: 14px 16px calc(96px + env(safe-area-inset-bottom)); }
+  .press:active { transform: scale(.97); transition: transform .08s; }
+  h1 { font-size: 28px; line-height: 1.15; margin: 0; letter-spacing: -.02em; }
+  h2 { font-size: 24px; line-height: 1.2; margin: 0 0 4px; letter-spacing: -.01em; }
+  h3 { font-size: 19px; margin: 24px 2px 12px; display: flex; align-items: baseline; justify-content: space-between; }
+  h3 small { font-size: 14px; color: var(--hint); font-weight: 400; }
+  .muted { color: var(--hint); }
+  .fade-in { animation: fade .22s ease; }
+  @keyframes fade { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: none; } }
 
-  .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+  /* ---------- Шапка ---------- */
+  .topbar { display: flex; align-items: center; justify-content: space-between; margin-bottom: 18px; }
+  .city-pill {
+    display: inline-flex; align-items: center; gap: 6px; background: var(--bg);
+    padding: 8px 14px; border-radius: 999px; font-weight: 600; font-size: 15px; box-shadow: var(--shadow);
+  }
+  .city-pill span { color: var(--hint); font-size: 12px; }
+  .avatar {
+    width: 40px; height: 40px; border-radius: 50%; flex: none; overflow: hidden;
+    display: grid; place-items: center; color: #fff; font-weight: 700; font-size: 16px;
+  }
+  .avatar img { width: 100%; height: 100%; object-fit: cover; }
+  .avatar.big { width: 96px; height: 96px; font-size: 38px; box-shadow: 0 0 0 4px var(--bg), var(--shadow); }
+  .avatar.small { width: 34px; height: 34px; font-size: 14px; }
+
+  .search {
+    display: flex; align-items: center; gap: 10px; background: var(--bg); border-radius: 14px;
+    padding: 0 14px; margin-top: 16px; box-shadow: var(--shadow);
+  }
+  .search input { flex: 1; border: 0; background: none; color: var(--text); font: inherit; padding: 13px 0; outline: none; }
+
+  /* ---------- Категории ---------- */
+  .cats { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; }
   .cat {
-    background: var(--bg); border-radius: var(--radius); padding: 16px 14px; border: 0;
-    text-align: left; color: var(--text); font: inherit; cursor: pointer;
+    position: relative; overflow: hidden; border-radius: 18px; padding: 14px 12px; min-height: 104px;
+    color: #fff; text-align: left; display: flex; flex-direction: column; justify-content: space-between;
   }
-  .cat .emoji { font-size: 30px; display: block; margin-bottom: 8px; }
-  .cat b { display: block; font-size: 16px; }
-  .cat small { color: var(--hint); }
-  .cat:active, .card:active { transform: scale(.98); }
+  .cat .emoji { font-size: 30px; filter: drop-shadow(0 2px 4px rgba(0,0,0,.2)); }
+  .cat b { font-size: 14px; line-height: 1.15; text-shadow: 0 1px 2px rgba(0,0,0,.2); }
+  .cat small { font-size: 12px; opacity: .85; }
 
-  .wide {
-    display: flex; align-items: center; gap: 12px; width: 100%; margin-top: 10px;
-    background: var(--bg); border-radius: var(--radius); padding: 14px; border: 0;
-    color: var(--text); font: inherit; text-align: left; cursor: pointer;
+  /* ---------- Большие карточки (топ) ---------- */
+  .carousel {
+    display: flex; gap: 12px; overflow-x: auto; scroll-snap-type: x mandatory;
+    margin: 0 -16px; padding: 2px 16px 8px; scrollbar-width: none;
   }
-  .wide .emoji { font-size: 24px; }
-  .wide span:last-child { margin-left: auto; color: var(--hint); }
+  .carousel::-webkit-scrollbar, .chips::-webkit-scrollbar, .gallery::-webkit-scrollbar { display: none; }
+  .tile {
+    flex: none; width: 240px; scroll-snap-align: start; background: var(--bg);
+    border-radius: var(--radius); overflow: hidden; text-align: left; box-shadow: var(--shadow);
+  }
+  .tile .cover { height: 150px; }
+  .tile .body { padding: 10px 12px 12px; }
+  .tile b { display: block; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .tile small { color: var(--hint); }
 
-  .chips { display: flex; gap: 8px; overflow-x: auto; padding-bottom: 2px; scrollbar-width: none; }
-  .chips::-webkit-scrollbar { display: none; }
+  .cover { position: relative; display: grid; place-items: center; font-size: 54px; overflow: hidden; }
+  .cover img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
+  .badge {
+    position: absolute; top: 10px; left: 10px; z-index: 1; display: inline-flex; align-items: center; gap: 3px;
+    background: rgba(0,0,0,.55); backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px);
+    color: #fff; font-weight: 700; font-size: 13px; padding: 4px 9px; border-radius: 999px;
+  }
+  .badge i { color: var(--gold); font-style: normal; }
+  .heart {
+    position: absolute; top: 8px; right: 8px; z-index: 1; width: 34px; height: 34px; border-radius: 50%;
+    background: rgba(0,0,0,.45); backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px);
+    display: grid; place-items: center; font-size: 16px;
+  }
+
+  /* ---------- Список ---------- */
+  .row-card {
+    display: flex; gap: 12px; width: 100%; margin-bottom: 10px; background: var(--bg);
+    border-radius: 18px; padding: 10px; text-align: left; box-shadow: var(--shadow); align-items: center;
+  }
+  .row-card .cover { width: 86px; height: 86px; border-radius: 14px; font-size: 34px; flex: none; }
+  .row-card .info { flex: 1; min-width: 0; }
+  .row-card b { display: block; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .row-card .meta { color: var(--hint); font-size: 14px; margin-top: 2px; }
+  .stars { color: var(--gold); font-weight: 700; }
+  .stars em { color: var(--hint); font-weight: 400; font-style: normal; font-size: 13px; }
+
+  .chips { display: flex; gap: 8px; overflow-x: auto; margin: 0 -16px; padding: 0 16px 2px; scrollbar-width: none; }
   .chip {
-    flex: none; border: 0; border-radius: 999px; padding: 8px 14px; font: inherit; font-size: 14px;
-    background: var(--bg); color: var(--text); cursor: pointer;
+    flex: none; border-radius: 999px; padding: 8px 14px; font-size: 14px;
+    background: var(--bg); color: var(--text); box-shadow: var(--shadow);
   }
   .chip.on { background: var(--btn); color: var(--btn-text); }
-  .filter-label { font-size: 13px; color: var(--hint); margin: 12px 4px 6px; }
+  .chip.gold.on { background: linear-gradient(135deg, #ffb800, #ff8a00); color: #fff; }
+  .flabel { font-size: 13px; color: var(--hint); margin: 14px 2px 8px; }
+  .empty { text-align: center; color: var(--hint); padding: 48px 16px; }
+  .empty .big { font-size: 46px; display: block; margin-bottom: 8px; }
 
-  .card {
-    display: flex; gap: 12px; align-items: center; width: 100%; margin-bottom: 10px;
-    background: var(--bg); border-radius: var(--radius); padding: 10px; border: 0;
-    color: var(--text); font: inherit; text-align: left; cursor: pointer;
+  /* ---------- Страница места ---------- */
+  .gallery {
+    display: flex; overflow-x: auto; scroll-snap-type: x mandatory; margin: -14px -16px 0;
+    height: 300px; scrollbar-width: none; position: relative;
   }
-  .thumb {
-    flex: none; width: 64px; height: 64px; border-radius: 10px; background: var(--bg2);
-    display: grid; place-items: center; font-size: 28px; overflow: hidden;
+  .gallery .cover { flex: none; width: 100%; height: 100%; scroll-snap-align: start; font-size: 90px; }
+  .credit { font-size: 11px; color: var(--hint); margin: 6px 2px 0; }
+  .sheet {
+    position: relative; background: var(--bg2); margin: -26px -16px 0; padding: 22px 16px 0;
+    border-radius: 26px 26px 0 0;
   }
-  .thumb img, .hero img { width: 100%; height: 100%; object-fit: cover; }
-  .card b { display: block; }
-  .card small { color: var(--hint); }
-  .empty { text-align: center; color: var(--hint); padding: 40px 10px; }
+  .place-head { display: flex; align-items: flex-start; justify-content: space-between; gap: 12px; }
+  .score {
+    flex: none; text-align: center; background: var(--bg); border-radius: 16px; padding: 8px 12px; box-shadow: var(--shadow);
+  }
+  .score b { display: block; font-size: 22px; color: var(--gold); line-height: 1; }
+  .score small { font-size: 11px; color: var(--hint); }
+  .tags { display: flex; flex-wrap: wrap; gap: 6px; margin: 10px 0 14px; }
+  .tag { font-size: 13px; background: var(--bg); border-radius: 999px; padding: 5px 10px; color: var(--hint); }
+  .card { background: var(--bg); border-radius: var(--radius); padding: 14px 16px; margin-bottom: 12px; box-shadow: var(--shadow); }
+  .card p { margin: 0; }
+  .line { display: flex; gap: 12px; align-items: center; padding: 9px 0; }
+  .line + .line { border-top: 1px solid var(--line); }
+  .line .ico { width: 30px; height: 30px; border-radius: 9px; background: var(--bg2); display: grid; place-items: center; flex: none; }
 
-  .hero {
-    height: 200px; border-radius: var(--radius); background: var(--bg); overflow: hidden;
-    display: grid; place-items: center; font-size: 72px; margin-bottom: 14px;
+  .actions { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; margin-bottom: 12px; }
+  .action {
+    background: var(--bg); border-radius: 16px; padding: 12px 4px; font-size: 12px; color: var(--link);
+    text-align: center; text-decoration: none; box-shadow: var(--shadow); display: block;
   }
-  .box { background: var(--bg); border-radius: var(--radius); padding: 14px; margin-bottom: 12px; }
-  .box p { margin: 0; }
-  .row { display: flex; gap: 10px; padding: 6px 0; }
-  .row + .row { border-top: 1px solid var(--bg2); }
-  .tag { color: var(--hint); margin: -6px 0 12px; }
-
-  .actions { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 10px; }
+  .action span { display: block; font-size: 22px; margin-bottom: 4px; }
   .btn {
-    display: block; width: 100%; border: 0; border-radius: 12px; padding: 13px; font: inherit; font-weight: 600;
-    background: var(--bg); color: var(--link); text-align: center; text-decoration: none; cursor: pointer;
+    display: block; width: 100%; border-radius: 14px; padding: 15px; font-weight: 600; text-align: center;
+    background: var(--bg); color: var(--link); box-shadow: var(--shadow); text-decoration: none;
   }
   .btn.primary { background: var(--btn); color: var(--btn-text); }
+  .btn + .btn { margin-top: 10px; }
 
-  label { display: block; font-size: 13px; color: var(--hint); margin: 12px 4px 6px; }
-  input {
-    width: 100%; border: 0; border-radius: 12px; padding: 13px; font: inherit;
-    background: var(--bg); color: var(--text); outline: none;
+  .review { display: flex; gap: 12px; padding: 12px 0; }
+  .review + .review { border-top: 1px solid var(--line); }
+  .review .who { display: flex; justify-content: space-between; gap: 8px; }
+  .review p { margin: 4px 0 0; font-size: 15px; }
+
+  /* ---------- Бронь ---------- */
+  label { display: block; font-size: 13px; color: var(--hint); margin: 14px 4px 6px; }
+  input.field {
+    width: 100%; border: 0; border-radius: 14px; padding: 14px; font: inherit;
+    background: var(--bg); color: var(--text); outline: none; box-shadow: var(--shadow);
   }
-  .stepper { display: flex; align-items: center; gap: 12px; background: var(--bg); border-radius: 12px; padding: 6px; }
-  .stepper button {
-    width: 44px; height: 44px; border: 0; border-radius: 10px; background: var(--bg2);
-    color: var(--text); font-size: 22px; cursor: pointer;
+  .stepper { display: flex; align-items: center; gap: 12px; background: var(--bg); border-radius: 14px; padding: 6px; box-shadow: var(--shadow); }
+  .stepper button { width: 46px; height: 46px; border-radius: 11px; background: var(--bg2); font-size: 22px; }
+  .stepper b { flex: 1; text-align: center; font-size: 19px; }
+  .result {
+    background: linear-gradient(135deg, color-mix(in srgb, var(--btn) 14%, var(--bg)), var(--bg));
+    border-radius: var(--radius); padding: 16px; margin: 18px 0 12px; user-select: text; box-shadow: var(--shadow);
   }
-  .stepper b { flex: 1; text-align: center; font-size: 18px; }
-  .result { background: var(--bg); border-radius: var(--radius); padding: 14px; margin: 16px 0 10px; user-select: text; }
+
+  /* ---------- Профиль ---------- */
+  .profile-head { text-align: center; padding: 8px 0 4px; }
+  .profile-head .avatar { margin: 0 auto 12px; }
+  .level {
+    display: inline-block; margin-top: 8px; padding: 5px 12px; border-radius: 999px; font-size: 13px; font-weight: 600;
+    background: linear-gradient(135deg, #7b5cff, #ff5ca8); color: #fff;
+  }
+  .progress { height: 8px; border-radius: 99px; background: var(--line); overflow: hidden; margin-top: 8px; }
+  .progress i { display: block; height: 100%; border-radius: 99px; background: linear-gradient(90deg, #7b5cff, #ff5ca8); }
+  .stats { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; margin-top: 18px; }
+  .stat { background: var(--bg); border-radius: 16px; padding: 12px 4px; text-align: center; box-shadow: var(--shadow); }
+  .stat b { display: block; font-size: 21px; }
+  .stat small { font-size: 11px; color: var(--hint); }
+  .achievements { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+  .ach { background: var(--bg); border-radius: 18px; padding: 14px; box-shadow: var(--shadow); }
+  .ach .emoji {
+    width: 46px; height: 46px; border-radius: 14px; display: grid; place-items: center; font-size: 26px; margin-bottom: 8px;
+  }
+  .ach b { display: block; font-size: 15px; }
+  .ach small { color: var(--hint); font-size: 12px; line-height: 1.25; display: block; }
+  .ach.locked .emoji { filter: grayscale(1); opacity: .45; background: var(--bg2) !important; }
+  .ach.locked b { color: var(--hint); }
+
+  /* ---------- Нижнее меню ---------- */
+  .tabbar {
+    position: fixed; left: 0; right: 0; bottom: 0; z-index: 10; display: flex; justify-content: center;
+    padding: 8px 16px calc(8px + env(safe-area-inset-bottom));
+    background: color-mix(in srgb, var(--bg) 82%, transparent);
+    backdrop-filter: blur(18px); -webkit-backdrop-filter: blur(18px); border-top: 1px solid var(--line);
+  }
+  .tabbar div { display: flex; width: 100%; max-width: 560px; justify-content: space-around; }
+  .tab { display: flex; flex-direction: column; align-items: center; gap: 2px; font-size: 11px; color: var(--hint); padding: 4px 18px; }
+  .tab span { font-size: 22px; filter: grayscale(1); opacity: .6; }
+  .tab.on { color: var(--btn); font-weight: 600; }
+  .tab.on span { filter: none; opacity: 1; }
+
+  /* ---------- Выбор города ---------- */
+  .backdrop { position: fixed; inset: 0; z-index: 20; background: rgba(0,0,0,.4); animation: fadeOnly .2s; }
+  .modal {
+    position: fixed; left: 0; right: 0; bottom: 0; z-index: 21; background: var(--bg2);
+    border-radius: 24px 24px 0 0; padding: 10px 16px calc(24px + env(safe-area-inset-bottom));
+    max-width: 560px; margin: 0 auto; animation: up .25s ease;
+  }
+  .modal .grip { width: 40px; height: 5px; border-radius: 9px; background: var(--line); margin: 0 auto 14px; }
+  .city-option {
+    display: flex; align-items: center; gap: 14px; width: 100%; background: var(--bg); border-radius: 16px;
+    padding: 14px; margin-top: 10px; text-align: left; box-shadow: var(--shadow);
+  }
+  .city-option .avatar { border-radius: 14px; }
+  .city-option .check { margin-left: auto; color: var(--btn); font-size: 20px; }
+  @keyframes up { from { transform: translateY(100%); } to { transform: none; } }
+  @keyframes fadeOnly { from { opacity: 0; } to { opacity: 1; } }
 
   #toast {
-    position: fixed; left: 50%; bottom: 24px; transform: translateX(-50%) translateY(80px);
-    background: rgba(0,0,0,.8); color: #fff; padding: 10px 16px; border-radius: 999px;
-    transition: transform .25s; pointer-events: none; font-size: 14px;
+    position: fixed; left: 50%; bottom: calc(90px + env(safe-area-inset-bottom)); z-index: 30;
+    transform: translateX(-50%) translateY(30px); opacity: 0;
+    background: rgba(20,20,20,.9); color: #fff; padding: 10px 16px; border-radius: 999px;
+    transition: .25s; pointer-events: none; font-size: 14px; white-space: nowrap;
   }
-  #toast.show { transform: translateX(-50%) translateY(0); }
-  .browser-back { display: none; margin-bottom: 10px; }
+  #toast.show { transform: translateX(-50%); opacity: 1; }
+  .browser-back { display: none; margin-bottom: 12px; }
   :root:not(.tg) .browser-back.visible { display: inline-block; }
 </style>
 </head>
 <body>
 <div id="app"></div>
+<nav class="tabbar" id="tabbar"></nav>
+<div id="overlay"></div>
 <div id="toast"></div>
 
 <script>
@@ -127,20 +258,36 @@ if (inTelegram) {
   tg.ready();
   tg.expand();
 }
+const me = (inTelegram && tg.initDataUnsafe.user) || { first_name: "Гость" };
 
 const DATE_CATEGORY = "Для свидания";
-const EMOJI = {
-  "Активности": "🧗", "Еда": "🍽", "Культура": "🎭",
-  "Прогулки": "🌳", "Вечер": "🌙", [DATE_CATEGORY]: "💘",
+const CATS = {
+  "Кофейни":     { emoji: "☕", grad: "linear-gradient(135deg,#c87941,#7a3e1d)" },
+  "Активности":  { emoji: "🧗", grad: "linear-gradient(135deg,#ff7a45,#ff3d71)" },
+  "Еда":         { emoji: "🍽", grad: "linear-gradient(135deg,#ffb347,#ff6a3d)" },
+  "Культура":    { emoji: "🎭", grad: "linear-gradient(135deg,#7b5cff,#4b33c9)" },
+  "Прогулки":    { emoji: "🌳", grad: "linear-gradient(135deg,#34c77b,#119a8a)" },
+  "Вечер":       { emoji: "🌙", grad: "linear-gradient(135deg,#3a4a8c,#141a3d)" },
+  [DATE_CATEGORY]: { emoji: "💘", grad: "linear-gradient(135deg,#ff5ca8,#c2185b)" },
 };
-const BUDGETS = [["any", "Любой"], ["500", "до 500 ₽"], ["1500", "до 1500 ₽"]];
-const AUDIENCES = [["any", "Не важно"], ["один", "🙋 Один"], ["пара", "👫 Пара"], ["компания", "👨‍👩‍👧 Компания"]];
+const catInfo = (c) => CATS[c] || { emoji: "📍", grad: "linear-gradient(135deg,#8e9eab,#5b6b78)" };
+const CITY_GRADS = ["linear-gradient(135deg,#ff5f6d,#ffc371)", "linear-gradient(135deg,#36d1dc,#5b86e5)",
+                    "linear-gradient(135deg,#11998e,#38ef7d)", "linear-gradient(135deg,#7b5cff,#ff5ca8)"];
+const AVATAR_GRADS = ["linear-gradient(135deg,#ff8a65,#ff5252)", "linear-gradient(135deg,#7986cb,#3f51b5)",
+                      "linear-gradient(135deg,#4db6ac,#00897b)", "linear-gradient(135deg,#ffb74d,#f57c00)",
+                      "linear-gradient(135deg,#ba68c8,#8e24aa)", "linear-gradient(135deg,#4fc3f7,#0288d1)"];
+const BUDGETS = [["any", "Любой бюджет"], ["500", "до 500 ₽"], ["1500", "до 1500 ₽"]];
+const AUDIENCES = [["any", "С кем угодно"], ["один", "🙋 Один"], ["пара", "👫 Вдвоём"], ["компания", "🎉 Компанией"]];
 const MONTHS = ["января", "февраля", "марта", "апреля", "мая", "июня", "июля",
                 "августа", "сентября", "октября", "ноября", "декабря"];
+const TOP = 4.5;
 
+let botName = "";
 let places = [];
 let favs = new Set();
-let state = { view: "home" };
+let stats = { viewed: [], bookings: 0, reviews: 0, cities: [] };
+let city = null;
+let state = { view: "home", tab: "home" };
 const stack = [];
 const app = document.getElementById("app");
 
@@ -148,8 +295,15 @@ const app = document.getElementById("app");
 
 const esc = (s) => String(s ?? "").replace(/[&<>"']/g, (c) =>
   ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
-const emoji = (cat) => EMOJI[cat] || "📍";
 const haptic = (type = "light") => inTelegram && tg.HapticFeedback && tg.HapticFeedback.impactOccurred(type);
+const hash = (s) => [...String(s)].reduce((a, c) => (a * 31 + c.charCodeAt(0)) >>> 0, 7);
+
+function plural(n, one, few, many) {
+  if (n % 10 === 1 && n % 100 !== 11) return `${n} ${one}`;
+  if (n % 10 >= 2 && n % 10 <= 4 && !(n % 100 >= 12 && n % 100 <= 14)) return `${n} ${few}`;
+  return `${n} ${many}`;
+}
+const peopleWord = (n) => (n % 10 === 1 && n % 100 !== 11) || (n % 10 >= 2 && n % 10 <= 4 && !(n % 100 >= 12 && n % 100 <= 14)) ? "человека" : "человек";
 
 function price(p) {
   if (p.avg_check === 0) return "бесплатно";
@@ -157,16 +311,8 @@ function price(p) {
   return "";
 }
 
-function peopleWord(n) {
-  if (n % 10 === 1 && n % 100 !== 11) return "человека";
-  if (n % 10 >= 2 && n % 10 <= 4 && !(n % 100 >= 12 && n % 100 <= 14)) return "человека";
-  return "человек";
-}
-
-function placesWord(n) {
-  if (n % 10 === 1 && n % 100 !== 11) return `${n} место`;
-  if (n % 10 >= 2 && n % 10 <= 4 && !(n % 100 >= 12 && n % 100 <= 14)) return `${n} места`;
-  return `${n} мест`;
+function stars(r) {
+  return r ? `<span class="stars">★ ${r.toFixed(1)}</span>` : "";
 }
 
 function normalizeLink(link) {
@@ -176,6 +322,7 @@ function normalizeLink(link) {
   else if (!/^https?:\/\//.test(link)) link = "https://" + link;
   return /^https?:\/\/[^\s/]+\.[^\s/]+(\/\S*)?$/.test(link) ? link : null;
 }
+const isMapLink = (url) => /yandex\.[a-z]+\/maps|2gis\./.test(url);
 
 function openLink(url) {
   if (inTelegram && /^https:\/\/t\.me\//.test(url)) tg.openTelegramLink(url);
@@ -188,55 +335,133 @@ function toast(text) {
   el.textContent = text;
   el.classList.add("show");
   clearTimeout(toast.t);
-  toast.t = setTimeout(() => el.classList.remove("show"), 1800);
+  toast.t = setTimeout(() => el.classList.remove("show"), 1900);
 }
 
-// ---------- Избранное: в облаке Telegram, а вне Telegram — в браузере ----------
+function avatarHtml(name, photo, cls = "") {
+  const grad = AVATAR_GRADS[hash(name) % AVATAR_GRADS.length];
+  const letter = esc((name || "?").trim()[0] || "?").toUpperCase();
+  const img = photo ? `<img src="${esc(photo)}" alt="" onerror="this.remove()">` : "";
+  return `<div class="avatar ${cls}" style="background:${grad}">${letter}${img}</div>`;
+}
+
+function coverHtml(p, photoIdx = 0, extra = "") {
+  const info = catInfo(p.category);
+  const photo = p.photos && p.photos[photoIdx];
+  return `<div class="cover" style="background:${info.grad}">${info.emoji}
+    ${photo ? `<img src="${esc(photo)}" alt="" loading="lazy" onerror="this.remove()">` : ""}${extra}</div>`;
+}
+
+// ---------- Хранилище: облако Telegram, вне Telegram — браузер ----------
 
 const useCloud = inTelegram && tg.CloudStorage && tg.isVersionAtLeast("6.9");
 
-function loadFavs() {
+function storeGet(keys) {
   return new Promise((resolve) => {
-    const done = (raw) => {
-      try { favs = new Set(JSON.parse(raw || "[]")); } catch { favs = new Set(); }
-      resolve();
-    };
-    if (useCloud) tg.CloudStorage.getItem("favs", (err, v) => done(err ? null : v));
-    else { try { done(localStorage.getItem("favs")); } catch { done(null); } }
+    if (useCloud) {
+      tg.CloudStorage.getItems(keys, (err, values) => resolve(err ? {} : values || {}));
+    } else {
+      const out = {};
+      try { for (const k of keys) out[k] = localStorage.getItem(k); } catch {}
+      resolve(out);
+    }
   });
 }
 
-function saveFavs() {
-  const raw = JSON.stringify([...favs]);
-  if (useCloud) tg.CloudStorage.setItem("favs", raw);
-  else { try { localStorage.setItem("favs", raw); } catch {} }
+function storeSet(key, value) {
+  const raw = typeof value === "string" ? value : JSON.stringify(value);
+  if (useCloud) tg.CloudStorage.setItem(key, raw);
+  else { try { localStorage.setItem(key, raw); } catch {} }
 }
+
+const parse = (raw, fallback) => { try { return raw ? JSON.parse(raw) : fallback; } catch { return fallback; } };
 
 // ---------- Данные ----------
 
+function cities() {
+  const count = {};
+  for (const p of places) count[p.city] = (count[p.city] || 0) + 1;
+  return Object.keys(count).sort((a, b) => count[b] - count[a]);
+}
+const inCity = () => places.filter((p) => p.city === city);
+
 function categories() {
   const list = [];
-  for (const p of places) if (!list.includes(p.category) && p.category !== DATE_CATEGORY) list.push(p.category);
-  if (places.some((p) => p.audience.includes("пара"))) list.push(DATE_CATEGORY);
+  for (const p of inCity()) if (!list.includes(p.category) && p.category !== DATE_CATEGORY) list.push(p.category);
+  if (inCity().some((p) => p.audience.includes("пара"))) list.push(DATE_CATEGORY);
   return list;
 }
 
 function inCategory(cat) {
   return cat === DATE_CATEGORY
-    ? places.filter((p) => p.audience.includes("пара"))
-    : places.filter((p) => p.category === cat);
+    ? inCity().filter((p) => p.audience.includes("пара"))
+    : inCity().filter((p) => p.category === cat);
 }
 
+const byRating = (a, b) => (b.rating || 0) - (a.rating || 0) || a.name.localeCompare(b.name, "ru");
+
 function filtered() {
-  return inCategory(state.category).filter((p) => {
-    if (state.budget !== "any" && !(p.avg_check != null && p.avg_check <= +state.budget)) return false;
-    if (state.who !== "any" && !p.audience.includes(state.who)) return false;
-    if (state.district !== "any" && p.district !== state.district) return false;
+  const f = state;
+  return inCategory(f.category).filter((p) => {
+    if (f.budget !== "any" && !(p.avg_check != null && p.avg_check <= +f.budget)) return false;
+    if (f.who !== "any" && !p.audience.includes(f.who)) return false;
+    if (f.district !== "any" && p.district !== f.district) return false;
+    if (f.top && !(p.rating >= TOP)) return false;
     return true;
-  }).sort((a, b) => a.name.localeCompare(b.name, "ru"));
+  }).sort(byRating);
 }
 
 const byId = (id) => places.find((p) => p.id === id);
+
+// ---------- Достижения ----------
+
+function progress() {
+  const viewed = stats.viewed.map(byId).filter(Boolean);
+  const inCat = (c) => viewed.filter((p) => p.category === c).length;
+  return {
+    viewed: viewed.length, favs: [...favs].filter(byId).length, bookings: stats.bookings, reviews: stats.reviews,
+    cities: new Set(viewed.map((p) => p.city)).size,
+    coffee: inCat("Кофейни"), culture: inCat("Культура"), walks: inCat("Прогулки"),
+  };
+}
+
+const ACHIEVEMENTS = [
+  { emoji: "👋", title: "Первый шаг", text: "Открыть приложение", key: null, goal: 1, color: "#ffe9a8" },
+  { emoji: "🔎", title: "Любопытный", text: "Открыть 5 мест", key: "viewed", goal: 5, color: "#cfe4ff" },
+  { emoji: "🧭", title: "Исследователь", text: "Открыть 20 мест", key: "viewed", goal: 20, color: "#d4f5e4" },
+  { emoji: "☕", title: "Кофеман", text: "Заглянуть в 3 кофейни", key: "coffee", goal: 3, color: "#f3dcc8" },
+  { emoji: "🎭", title: "Ценитель", text: "Открыть 3 музея", key: "culture", goal: 3, color: "#e2dbff" },
+  { emoji: "🌳", title: "Гуляка", text: "Открыть 3 места для прогулок", key: "walks", goal: 3, color: "#d4f5e4" },
+  { emoji: "⭐", title: "Коллекционер", text: "Сохранить 5 мест", key: "favs", goal: 5, color: "#fff1b8" },
+  { emoji: "📝", title: "Планировщик", text: "Собрать текст брони", key: "bookings", goal: 1, color: "#ffd9e6" },
+  { emoji: "✍️", title: "Голос города", text: "Оставить отзыв", key: "reviews", goal: 1, color: "#d9f1ff" },
+  { emoji: "✈️", title: "Путешественник", text: "Места в 2 городах", key: "cities", goal: 2, color: "#e8e1ff" },
+];
+
+function achievements() {
+  const pr = progress();
+  return ACHIEVEMENTS.map((a) => {
+    const value = a.key ? Math.min(pr[a.key], a.goal) : 1;
+    return { ...a, value, done: value >= a.goal };
+  });
+}
+
+function checkNewAchievements(before) {
+  const now = achievements().filter((a) => a.done).map((a) => a.title);
+  const fresh = now.find((t) => !before.includes(t));
+  if (fresh) {
+    const a = ACHIEVEMENTS.find((x) => x.title === fresh);
+    if (inTelegram && tg.HapticFeedback) tg.HapticFeedback.notificationOccurred("success");
+    setTimeout(() => toast(`${a.emoji} Достижение: ${a.title}!`), 350);
+  }
+}
+
+function track(fn) {
+  const before = achievements().filter((a) => a.done).map((a) => a.title);
+  fn();
+  storeSet("stats", stats);
+  checkNewAchievements(before);
+}
 
 // ---------- Навигация ----------
 
@@ -254,105 +479,205 @@ function back() {
   render();
 }
 
+function switchTab(tab) {
+  stack.length = 0;
+  state = { view: tab, tab };
+  haptic("soft");
+  render();
+  window.scrollTo(0, 0);
+}
+
 if (inTelegram) tg.BackButton.onClick(back);
 
 // ---------- Экраны ----------
 
-function cardHtml(p) {
-  const thumb = p.photo ? `<img src="${esc(p.photo)}" alt="" loading="lazy" onerror="this.replaceWith('${emoji(p.category)}')">` : emoji(p.category);
-  const meta = [price(p), p.district].filter(Boolean).join(" · ");
-  return `<button class="card" data-place="${p.id}">
-    <div class="thumb">${thumb}</div>
-    <div><b>${esc(p.name)}${favs.has(p.id) ? " ⭐" : ""}</b><small>${esc(meta)}</small></div>
+function rowCard(p) {
+  const meta = [p.district, price(p)].filter(Boolean).join(" · ");
+  return `<button class="row-card press" data-place="${p.id}">
+    ${coverHtml(p)}
+    <div class="info">
+      <b>${esc(p.name)}</b>
+      <div class="meta">${esc(catInfo(p.category).emoji + " " + p.category)}</div>
+      <div class="meta">${stars(p.rating)} ${p.reviews_count ? `<em>· ${plural(p.reviews_count, "отзыв", "отзыва", "отзывов")}</em>` : ""}</div>
+      ${meta ? `<div class="meta">${esc(meta)}</div>` : ""}
+    </div>
+    ${favs.has(p.id) ? "<span>⭐</span>" : ""}
+  </button>`;
+}
+
+function tile(p) {
+  const badge = p.rating ? `<span class="badge"><i>★</i>${p.rating.toFixed(1)}</span>` : "";
+  return `<button class="tile press" data-place="${p.id}">
+    ${coverHtml(p, 0, badge)}
+    <div class="body"><b>${esc(p.name)}</b><small>${esc([catInfo(p.category).emoji + " " + p.category, price(p)].filter(Boolean).join(" · "))}</small></div>
   </button>`;
 }
 
 const views = {
   home() {
-    const cats = categories();
-    return `
-      <h1>Куда сходить?</h1>
-      <p class="sub">Выбери, что хочется сегодня</p>
-      <div class="grid">
-        ${cats.map((c) => `
-          <button class="cat" data-cat="${esc(c)}">
-            <span class="emoji">${emoji(c)}</span>
-            <b>${esc(c)}</b><small>${placesWord(inCategory(c).length)}</small>
+    const q = (state.query || "").trim().toLowerCase();
+    const greeting = new Date().getHours() < 12 ? "Доброе утро" : new Date().getHours() < 18 ? "Добрый день" : "Добрый вечер";
+    const top = inCity().filter((p) => p.rating >= TOP).sort(byRating).slice(0, 10);
+    const head = `
+      <div class="topbar">
+        <button class="city-pill press" data-cities>📍 ${esc(city)} <span>▼</span></button>
+        <button class="press" data-tab="profile">${avatarHtml(me.first_name, me.photo_url)}</button>
+      </div>
+      <h1>${greeting}, ${esc(me.first_name)}!</h1>
+      <p class="muted" style="margin:6px 0 0">Куда сходим сегодня?</p>
+      <div class="search"><span>🔍</span><input id="search" placeholder="Кофейня, музей, парк…" value="${esc(state.query || "")}" autocomplete="off"></div>`;
+
+    if (q) {
+      const found = inCity().filter((p) => (p.name + " " + p.category + " " + p.description).toLowerCase().includes(q)).sort(byRating);
+      return head + `<h3>Нашлось <small>${found.length}</small></h3>` +
+        (found.length ? found.map(rowCard).join("") : `<div class="empty"><span class="big">🤷</span>Ничего не нашлось</div>`);
+    }
+    return head + `
+      <h3>Категории</h3>
+      <div class="cats">
+        ${categories().map((c) => `
+          <button class="cat press" style="background:${catInfo(c).grad}" data-cat="${esc(c)}">
+            <span class="emoji">${catInfo(c).emoji}</span>
+            <span><b>${esc(c)}</b><br><small>${plural(inCategory(c).length, "место", "места", "мест")}</small></span>
           </button>`).join("")}
       </div>
-      <button class="wide" data-go="favorites">
-        <span class="emoji">⭐</span><b>Избранное</b><span>${favs.size || ""}</span>
-      </button>`;
+      ${top.length ? `<h3>🔥 Рейтинг ${TOP}+ <small>${top.length}</small></h3><div class="carousel">${top.map(tile).join("")}</div>` : ""}
+      <h3>Все места <small>${inCity().length}</small></h3>
+      ${inCity().sort(byRating).slice(0, 6).map(rowCard).join("")}`;
   },
 
   list() {
     const districts = [...new Set(inCategory(state.category).map((p) => p.district).filter(Boolean))].sort();
     const chips = (key, options) => `<div class="chips">${options.map(([v, label]) =>
-      `<button class="chip ${state[key] === v ? "on" : ""}" data-filter="${key}" data-value="${esc(v)}">${esc(label)}</button>`
+      `<button class="chip press ${state[key] === v ? "on" : ""}" data-filter="${key}" data-value="${esc(v)}">${esc(label)}</button>`
     ).join("")}</div>`;
     const results = filtered();
     return `
-      <h2>${emoji(state.category)} ${esc(state.category)}</h2>
-      <div class="filter-label">Бюджет на человека</div>${chips("budget", BUDGETS)}
-      <div class="filter-label">С кем идёшь</div>${chips("who", AUDIENCES)}
-      ${districts.length > 1 ? `<div class="filter-label">Район</div>${chips("district", [["any", "Любой"], ...districts.map((d) => [d, d])])}` : ""}
-      <div class="section">Нашлось: ${results.length}</div>
-      ${results.length ? results.map(cardHtml).join("") : `<div class="empty">Ничего не нашлось 😕<br>Попробуй смягчить фильтры</div>`}`;
+      <h2>${catInfo(state.category).emoji} ${esc(state.category)}</h2>
+      <p class="muted" style="margin:0">${esc(city)} · сначала высокий рейтинг</p>
+      <div class="flabel">Фильтры</div>
+      <div class="chips"><button class="chip gold press ${state.top ? "on" : ""}" data-toggle-top>★ ${TOP}+</button>
+        ${BUDGETS.map(([v, l]) => `<button class="chip press ${state.budget === v ? "on" : ""}" data-filter="budget" data-value="${v}">${l}</button>`).join("")}</div>
+      <div style="height:8px"></div>${chips("who", AUDIENCES)}
+      ${districts.length > 1 ? `<div style="height:8px"></div>${chips("district", [["any", "Все районы"], ...districts.map((d) => [d, d])])}` : ""}
+      <h3>Нашлось <small>${results.length}</small></h3>
+      ${results.length ? results.map(rowCard).join("") : `<div class="empty"><span class="big">😕</span>Ничего не нашлось.<br>Попробуй смягчить фильтры.</div>`}`;
   },
 
   favorites() {
-    const list = places.filter((p) => favs.has(p.id));
+    const list = places.filter((p) => favs.has(p.id)).sort(byRating);
     return `
-      <h2>⭐ Избранное</h2>
-      ${list.length ? list.map(cardHtml).join("")
-        : `<div class="empty">Пока пусто.<br>Открой место и нажми «В избранное».</div>`}`;
+      <h1>Избранное</h1>
+      <p class="muted" style="margin:6px 0 16px">${list.length ? plural(list.length, "место", "места", "мест") : "Пока пусто"}</p>
+      ${list.length ? list.map(rowCard).join("")
+        : `<div class="empty"><span class="big">⭐</span>Открой место и нажми на сердечко —<br>оно появится здесь.</div>`}`;
+  },
+
+  profile() {
+    const pr = progress();
+    const ach = achievements();
+    const done = ach.filter((a) => a.done).length;
+    const levels = ["Новичок", "Гость города", "Знаток", "Местный", "Легенда"];
+    const level = levels[Math.min(levels.length - 1, Math.floor(done / 2.5))];
+    return `
+      <div class="profile-head">
+        ${avatarHtml(me.first_name, me.photo_url, "big")}
+        <h2>${esc([me.first_name, me.last_name].filter(Boolean).join(" "))}</h2>
+        <div class="muted">${me.username ? "@" + esc(me.username) + " · " : ""}📍 ${esc(city)}</div>
+        <span class="level">🏅 ${level}</span>
+      </div>
+      <div class="card" style="margin-top:18px">
+        <div style="display:flex;justify-content:space-between"><b>Достижения</b><span class="muted">${done} из ${ach.length}</span></div>
+        <div class="progress"><i style="width:${Math.round(done / ach.length * 100)}%"></i></div>
+      </div>
+      <div class="stats">
+        <div class="stat"><b>${pr.viewed}</b><small>мест<br>открыто</small></div>
+        <div class="stat"><b>${pr.favs}</b><small>в избран-<br>ном</small></div>
+        <div class="stat"><b>${pr.bookings}</b><small>текстов<br>брони</small></div>
+        <div class="stat"><b>${pr.reviews}</b><small>отзывов</small></div>
+      </div>
+      <h3>🏆 Достижения</h3>
+      <div class="achievements">
+        ${ach.map((a) => `
+          <div class="ach ${a.done ? "" : "locked"}">
+            <div class="emoji" style="background:${a.color}">${a.emoji}</div>
+            <b>${a.title}</b><small>${a.text}</small>
+            ${a.goal > 1 && !a.done ? `<div class="progress"><i style="width:${a.value / a.goal * 100}%"></i></div><small style="margin-top:4px">${a.value} / ${a.goal}</small>` : ""}
+            ${a.done ? `<small style="color:#34c77b;margin-top:6px">✓ Получено</small>` : ""}
+          </div>`).join("")}
+      </div>
+      <div style="height:16px"></div>
+      <button class="btn press" data-cities>📍 Сменить город</button>`;
   },
 
   place() {
     const p = byId(state.placeId);
-    if (!p) return `<div class="empty">Этого места больше нет 😕</div>`;
+    if (!p) return `<div class="empty"><span class="big">😕</span>Этого места больше нет</div>`;
     const link = normalizeLink(p.link);
     const fav = favs.has(p.id);
-    const rows = [
+    const tel = p.phone ? p.phone.replace(/[^\d+]/g, "") : "";
+    const photos = p.photos.length ? p.photos : [null];
+    const lines = [
       p.address && ["📍", esc(p.address)],
-      price(p) && ["💰", p.avg_check === 0 ? "Бесплатно" : `Средний чек ${price(p)}`],
+      price(p) && ["💰", p.avg_check === 0 ? "Вход бесплатный" : `Средний чек ${price(p)}`],
       p.audience && ["👥", "Подойдёт: " + esc(p.audience)],
       p.phone && ["📞", esc(p.phone)],
     ].filter(Boolean);
+    const reviews = p.reviews || [];
     return `
-      <div class="hero">${p.photo ? `<img src="${esc(p.photo)}" alt="" onerror="this.replaceWith('${emoji(p.category)}')">` : emoji(p.category)}</div>
-      <h2>${esc(p.name)}</h2>
-      <p class="tag">${esc([p.category, p.district].filter(Boolean).join(" · "))}</p>
-      ${p.description ? `<div class="box"><p>${esc(p.description)}</p></div>` : ""}
-      <div class="box">${rows.map(([i, t]) => `<div class="row"><span>${i}</span><span>${t}</span></div>`).join("")}</div>
-      <div class="actions">
-        ${p.phone ? `<a class="btn" href="tel:${esc(p.phone.replace(/[^\d+]/g, ""))}">📞 Позвонить</a>` : ""}
-        ${link ? `<button class="btn" data-link="${esc(link)}">💬 Написать</button>` : ""}
-      </div>
-      <button class="btn primary" data-go="booking">📝 Текст для брони</button>
-      <div style="height:10px"></div>
-      <button class="btn" data-fav="${p.id}">${fav ? "✅ В избранном" : "⭐ В избранное"}</button>`;
+      <div class="gallery">${photos.map((_, i) => coverHtml(p, i)).join("")}</div>
+      <div class="sheet">
+        <div class="place-head">
+          <div><h2>${esc(p.name)}</h2><div class="muted">${esc(catInfo(p.category).emoji + " " + p.category)}</div></div>
+          ${p.rating ? `<div class="score"><b>★ ${p.rating.toFixed(1)}</b><small>${p.reviews_count ? plural(p.reviews_count, "отзыв", "отзыва", "отзывов") : "рейтинг"}</small></div>` : ""}
+        </div>
+        <div class="tags">${[p.city, p.district, p.photos.length > 1 ? `📷 ${p.photos.length} фото →` : ""].filter(Boolean).map((t) => `<span class="tag">${esc(t)}</span>`).join("")}</div>
+
+        <div class="actions">
+          <button class="action press" data-fav="${p.id}"><span>${fav ? "❤️" : "🤍"}</span>${fav ? "В избранном" : "Сохранить"}</button>
+          ${tel ? `<a class="action press" href="tel:${esc(tel)}"><span>📞</span>Позвонить</a>` : ""}
+          ${link ? `<button class="action press" data-link="${esc(link)}"><span>${isMapLink(link) ? "🗺" : "💬"}</span>${isMapLink(link) ? "На карте" : "Написать"}</button>` : ""}
+          <button class="action press" data-share="${p.id}"><span>📤</span>Поделиться</button>
+        </div>
+
+        ${p.description ? `<div class="card"><p>${esc(p.description)}</p></div>` : ""}
+        <div class="card">${lines.map(([i, t]) => `<div class="line"><span class="ico">${i}</span><span>${t}</span></div>`).join("")}</div>
+
+        <div class="card">
+          <div style="display:flex;justify-content:space-between;align-items:center"><b>Отзывы</b>
+            ${p.reviews_count > reviews.length ? `<span class="muted">${reviews.length} из ${p.reviews_count}</span>` : ""}</div>
+          ${reviews.length ? reviews.map((r) => `
+            <div class="review">
+              ${avatarHtml(r.author, null, "small")}
+              <div style="flex:1">
+                <div class="who"><b>${esc(r.author)}</b><span class="stars">${"★".repeat(r.rating)}<em>${"★".repeat(5 - r.rating)}</em></span></div>
+                ${r.text ? `<p>${esc(r.text)}</p>` : ""}
+              </div>
+            </div>`).join("") : `<p class="muted" style="margin-top:8px">Отзывов пока нет — будь первым!</p>`}
+          ${botName ? `<button class="btn press" style="margin-top:10px;box-shadow:none;background:var(--bg2)" data-review="${p.id}">✍️ Написать отзыв</button>` : ""}
+        </div>
+
+        <button class="btn primary press" data-go="booking">📝 Текст для брони</button>
+        ${p.photo_credit ? `<p class="credit">Фото: ${esc(p.photo_credit)}</p>` : ""}
+        ${p.rating && !p.reviews_count ? `<p class="credit">Рейтинг — по данным Яндекс Карт.</p>` : ""}
+      </div>`;
   },
 
   booking() {
     const p = byId(state.placeId);
-    const b = state.booking || (state.booking = { date: "", time: "19:00", guests: 2, name: "", phone: "" });
-    if (!b.name && inTelegram && tg.initDataUnsafe.user) b.name = tg.initDataUnsafe.user.first_name || "";
+    const b = state.booking || (state.booking = { date: "", time: "19:00", guests: 2, name: me.first_name === "Гость" ? "" : me.first_name, phone: "" });
     return `
-      <h2>📝 Бронь</h2>
-      <p class="tag">${esc(p ? p.name : "")}</p>
-      <label>Дата</label><input type="date" id="b-date" value="${esc(b.date)}">
-      <label>Время</label><input type="time" id="b-time" value="${esc(b.time)}">
+      <h2>📝 Текст для брони</h2>
+      <p class="muted" style="margin:0">${esc(p ? p.name : "")}</p>
+      <label>Дата</label><input class="field" type="date" id="b-date" value="${esc(b.date)}">
+      <label>Время</label><input class="field" type="time" id="b-time" value="${esc(b.time)}">
       <label>Сколько человек</label>
       <div class="stepper"><button data-step="-1">−</button><b id="b-guests">${b.guests}</b><button data-step="1">+</button></div>
-      <label>Имя</label><input id="b-name" value="${esc(b.name)}" placeholder="Анна" autocomplete="given-name">
-      <label>Телефон</label><input id="b-phone" type="tel" value="${esc(b.phone)}" placeholder="+7 900 123-45-67" autocomplete="tel">
+      <label>Имя</label><input class="field" id="b-name" value="${esc(b.name)}" placeholder="Анна" autocomplete="given-name">
+      <label>Телефон</label><input class="field" id="b-phone" type="tel" value="${esc(b.phone)}" placeholder="+7 900 123-45-67" autocomplete="tel">
       <div class="result" id="b-result"></div>
-      <button class="btn primary" id="b-copy">📋 Скопировать текст</button>
-      ${p && (p.phone || normalizeLink(p.link)) ? `<div style="height:10px"></div><div class="actions">
-        ${p.phone ? `<a class="btn" href="tel:${esc(p.phone.replace(/[^\d+]/g, ""))}">📞 Позвонить</a>` : ""}
-        ${normalizeLink(p.link) ? `<button class="btn" data-link="${esc(normalizeLink(p.link))}">💬 Написать</button>` : ""}
-      </div>` : ""}`;
+      <button class="btn primary press" id="b-copy">📋 Скопировать текст</button>
+      ${p && p.phone ? `<a class="btn press" href="tel:${esc(p.phone.replace(/[^\d+]/g, ""))}">📞 Позвонить</a>` : ""}`;
   },
 };
 
@@ -360,26 +685,50 @@ function bookingText() {
   const b = state.booking;
   let date = "…";
   if (b.date) {
-    const [y, m, d] = b.date.split("-").map(Number);
+    const [, m, d] = b.date.split("-").map(Number);
     date = `${d} ${MONTHS[m - 1]}`;
   }
-  return `Здравствуйте! Хочу забронировать на ${date} в ${b.time || "…"} на ${b.guests} ${peopleWord(b.guests)}. ` +
-         (`Имя: ${b.name.trim() || "…"}, телефон: ${b.phone.trim() || "…"}.`).replace("….", "…");
+  return (`Здравствуйте! Хочу забронировать на ${date} в ${b.time || "…"} на ${b.guests} ${peopleWord(b.guests)}. ` +
+          `Имя: ${b.name.trim() || "…"}, телефон: ${b.phone.trim() || "…"}.`).replace("….", "…");
 }
 
+function renderTabbar() {
+  const tabs = [["home", "🏠", "Главная"], ["favorites", "❤️", "Избранное"], ["profile", "👤", "Профиль"]];
+  const show = ["home", "favorites", "profile"].includes(state.view);
+  document.getElementById("tabbar").style.display = show ? "" : "none";
+  document.getElementById("tabbar").innerHTML = `<div>${tabs.map(([id, icon, label]) =>
+    `<button class="tab press ${state.tab === id ? "on" : ""}" data-tab="${id}"><span>${icon}</span>${label}</button>`).join("")}</div>`;
+}
+
+let lastView = null;
+
 function render() {
+  // Анимация только при переходе на другой экран, а не при каждом нажатии
+  const animate = state.view !== lastView || state.placeId !== render.lastPlace;
+  lastView = state.view;
+  render.lastPlace = state.placeId;
   app.innerHTML =
     `<button class="chip browser-back ${stack.length ? "visible" : ""}" data-back>← Назад</button>` +
-    views[state.view]();
+    `<div class="${animate ? "fade-in" : ""}">${views[state.view]()}</div>`;
+  renderTabbar();
   if (inTelegram) stack.length ? tg.BackButton.show() : tg.BackButton.hide();
+
+  const search = document.getElementById("search");
+  if (search) {
+    search.addEventListener("input", () => {
+      state.query = search.value;
+      const pos = search.selectionStart;
+      render();
+      const again = document.getElementById("search");
+      again.focus();
+      again.setSelectionRange(pos, pos);
+    });
+  }
 
   if (state.view === "booking") {
     const update = () => {
       const b = state.booking;
-      b.date = document.getElementById("b-date").value;
-      b.time = document.getElementById("b-time").value;
-      b.name = document.getElementById("b-name").value;
-      b.phone = document.getElementById("b-phone").value;
+      for (const k of ["date", "time", "name", "phone"]) b[k] = document.getElementById("b-" + k).value;
       document.getElementById("b-result").textContent = bookingText();
     };
     app.querySelectorAll("input").forEach((i) => i.addEventListener("input", update));
@@ -387,18 +736,58 @@ function render() {
   }
 }
 
+function openCities() {
+  const overlay = document.getElementById("overlay");
+  overlay.innerHTML = `
+    <div class="backdrop" data-close></div>
+    <div class="modal">
+      <div class="grip"></div>
+      <h2>Выбери город</h2>
+      ${cities().map((c, i) => `
+        <button class="city-option press" data-city="${esc(c)}">
+          <div class="avatar" style="background:${CITY_GRADS[i % CITY_GRADS.length]}">${esc(c[0])}</div>
+          <div><b>${esc(c)}</b><div class="muted" style="font-size:14px">${plural(places.filter((p) => p.city === c).length, "место", "места", "мест")}</div></div>
+          ${c === city ? `<span class="check">✓</span>` : ""}
+        </button>`).join("")}
+    </div>`;
+  haptic();
+}
+
+function setCity(c) {
+  city = c;
+  storeSet("city", c);
+  document.getElementById("overlay").innerHTML = "";
+  stack.length = 0;
+  state = { view: "home", tab: "home" };
+  render();
+  window.scrollTo(0, 0);
+  toast(`📍 ${c}`);
+}
+
 // Один обработчик на все нажатия
-app.addEventListener("click", async (e) => {
-  const el = e.target.closest("button");
+document.addEventListener("click", async (e) => {
+  const el = e.target.closest("button, [data-close]");
   if (!el) return;
   const d = el.dataset;
 
   if ("back" in d) return back();
-  if (d.cat) return go("list", { category: d.cat, budget: "any", who: "any", district: "any" });
+  if ("close" in d) return (document.getElementById("overlay").innerHTML = "");
+  if ("cities" in d) return openCities();
+  if (d.city) return setCity(d.city);
+  if (d.tab) return switchTab(d.tab);
+  if (d.cat) return go("list", { category: d.cat, budget: "any", who: "any", district: "any", top: false });
   if (d.go) return go(d.go);
-  if (d.place) return go("place", { placeId: +d.place, booking: null });
   if (d.link) return openLink(d.link);
-
+  if (d.place) {
+    const id = +d.place;
+    track(() => { if (!stats.viewed.includes(id)) stats.viewed.push(id); });
+    return go("place", { placeId: id, booking: null });
+  }
+  if ("toggleTop" in d) {
+    state.top = !state.top;
+    haptic("soft");
+    return render();
+  }
   if (d.filter) {
     state[d.filter] = d.value;
     haptic("soft");
@@ -406,11 +795,21 @@ app.addEventListener("click", async (e) => {
   }
   if (d.fav) {
     const id = +d.fav;
-    favs.has(id) ? favs.delete(id) : favs.add(id);
-    saveFavs();
+    track(() => { favs.has(id) ? favs.delete(id) : favs.add(id); });
+    storeSet("favs", [...favs]);
     haptic("medium");
-    toast(favs.has(id) ? "Добавлено в избранное ⭐" : "Убрано из избранного");
+    toast(favs.has(id) ? "❤️ Сохранено в избранное" : "Убрано из избранного");
     return render();
+  }
+  if (d.review) {
+    track(() => { stats.reviews += 1; });
+    return openLink(`https://t.me/${botName}?start=review_${d.review}`);
+  }
+  if (d.share) {
+    const p = byId(+d.share);
+    const text = `${p.name} — ${p.address || p.city}. Нашёл в боте «Куда сходить»`;
+    const url = botName ? `https://t.me/${botName}` : location.href;
+    return openLink(`https://t.me/share/url?url=${encodeURIComponent(url)}&text=${encodeURIComponent(text)}`);
   }
   if (d.step) {
     const b = state.booking;
@@ -430,8 +829,9 @@ app.addEventListener("click", async (e) => {
       getSelection().addRange(r);
       document.execCommand("copy");
     }
+    track(() => { stats.bookings += 1; });
     if (inTelegram && tg.HapticFeedback) tg.HapticFeedback.notificationOccurred("success");
-    toast("Скопировано! Отправь заведению 👌");
+    toast("📋 Скопировано! Отправь заведению");
   }
 });
 
@@ -440,13 +840,21 @@ app.addEventListener("click", async (e) => {
 (async () => {
   try {
     const res = await fetch("places.json?v=" + Date.now());
-    places = await res.json();
+    const data = await res.json();
+    places = data.places || data;
+    botName = data.bot || "";
   } catch {
-    app.innerHTML = `<div class="empty">Не удалось загрузить места 😕<br>Попробуй позже</div>`;
+    app.innerHTML = `<div class="empty"><span class="big">😕</span>Не удалось загрузить места.<br>Попробуй позже.</div>`;
     return;
   }
-  await loadFavs();
+  const saved = await storeGet(["favs", "stats", "city"]);
+  // Места, которых больше нет в базе, из избранного убираем
+  favs = new Set(parse(saved.favs, []).filter(byId));
+  stats = { ...stats, ...parse(saved.stats, {}) };
+  const all = cities();
+  city = all.includes(saved.city) ? saved.city : all[0];
   render();
+  if (!all.includes(saved.city) && all.length > 1) openCities();
 })();
 </script>
 </body>
