@@ -250,6 +250,14 @@
   .browser-back { display: none; margin-bottom: 12px; }
   :root:not(.tg) .browser-back.visible { display: inline-block; }
 
+  /* «Рядом со мной» */
+  .near-btn { display: flex; align-items: center; gap: 12px; width: 100%; margin-top: 12px; padding: 12px 14px;
+    border-radius: 18px; text-align: left; color: var(--text);
+    background: linear-gradient(135deg, rgba(52, 199, 123, .28), rgba(74, 140, 255, .22)); border: 1px solid rgba(255, 255, 255, .1); }
+  .near-btn .near-anim { width: 38px; height: 38px; }
+  .near-btn b { display: block; } .near-btn small { color: var(--hint); }
+  .near-btn i { margin-left: auto; font-style: normal; font-size: 26px; color: var(--hint); }
+
   /* Окно приглашения */
   .kinds { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin: 14px 0 6px; }
   .kind { padding: 16px 10px; border-radius: 18px; background: rgba(255, 255, 255, .08); color: var(--text);
@@ -698,7 +706,8 @@ if (inTelegram) tg.BackButton.onClick(back);
 // ---------- Экраны ----------
 
 function rowCard(p, i = 0) {
-  const meta = [p.district, price(p)].filter(Boolean).join(" · ");
+  const dist = distanceTo(p);
+  const meta = [dist !== null ? `📍 ${fmtDist(dist)}` : "", p.district, price(p)].filter(Boolean).join(" · ");
   return `<button class="row-card press stagger" style="--i:${Math.min(i, 12)}" data-place="${p.id}">
     ${coverHtml(p)}
     <div class="info">
@@ -720,6 +729,36 @@ function tile(p, i = 0) {
 }
 
 const views = {
+  nearby() {
+    if (state.locating) {
+      return `<h2>📍 Рядом со мной</h2><p class="muted" style="margin:0 0 16px">Определяю, где ты…</p>${skeleton()}`;
+    }
+    if (!userPos) {
+      return `<h2>📍 Рядом со мной</h2>
+        <div class="empty"><span class="big">🧭</span>Не получилось узнать, где ты.<br>
+        Разреши доступ к геопозиции — и я покажу места рядом.</div>
+        <button class="btn primary press" data-near>Попробовать ещё раз</button>
+        ${inTelegram && tg.LocationManager && tg.LocationManager.isInited && !tg.LocationManager.isAccessGranted
+          ? `<div style="height:10px"></div><button class="btn press" data-geo-settings>Открыть настройки доступа</button>` : ""}`;
+    }
+    const all = places.filter((p) => p.lat && p.lon).map((p) => [distanceTo(p), p]).sort((a, b) => a[0] - b[0]);
+    if (!all.length || all[0][0] > 50) {
+      return `<h2>📍 Рядом со мной</h2>
+        <div class="empty"><span class="big">🗺</span>Рядом с тобой пока нет мест из моей базы.<br>
+        Я знаю ${plural(cities().length, "город", "города", "городов")}: ${esc(cities().join(", "))}.</div>`;
+    }
+    const cats = ["all", ...new Set(all.slice(0, 300).map(([, p]) => p.category))];
+    const list = all.filter(([, p]) => state.nearCat === "all" || !state.nearCat || p.category === state.nearCat).slice(0, state.limit || PAGE);
+    return `
+      <h2>📍 Рядом со мной</h2>
+      <p class="muted" style="margin:0 0 12px">Сначала ближайшие · ${esc(all[0][1].city)}</p>
+      <div class="chips">${cats.map((c) => `<button class="chip press ${(state.nearCat || "all") === c ? "on" : ""}" data-near-cat="${esc(c)}">${
+        c === "all" ? "Все" : esc(catInfo(c).emoji + " " + c)}</button>`).join("")}</div>
+      <div style="height:12px"></div>
+      ${list.map(([, p], i) => rowCard(p, i)).join("")}
+      <button class="btn press more" data-more>Показать ещё</button>`;
+  },
+
   home() {
     const q = (state.query || "").trim().toLowerCase();
     const greeting = new Date().getHours() < 12 ? "Доброе утро" : new Date().getHours() < 18 ? "Добрый день" : "Добрый вечер";
@@ -740,7 +779,8 @@ const views = {
         <h1>${greeting},<br>${esc(me.first_name)}! ${anim("1f44b", "👋", "anim wave")}</h1>
         <p class="hero-sub">${plural(inCity().length, "место", "места", "мест")} в городе — куда сходим сегодня?</p>
       </div>
-      <div class="search"><span>🔍</span><input id="search" placeholder="Спешелти, завтраки, музей…" value="${esc(state.query || "")}" autocomplete="off"></div>`;
+      <div class="search"><span>🔍</span><input id="search" placeholder="Спешелти, завтраки, музей…" value="${esc(state.query || "")}" autocomplete="off"></div>
+      <button class="near-btn press" data-near>${anim("1f30d", "🌍", "anim near-anim")}<span><b>Рядом со мной</b><small>Покажу ближайшие места</small></span><i>›</i></button>`;
 
     if (q) {
       const found = inCity().filter((p) => (p.name + " " + p.category + " " + p.description + " " + (p.tags || []).join(" ")).toLowerCase().includes(q)).sort(byRating);
@@ -856,7 +896,7 @@ const views = {
           <div><h2>${esc(p.name)}</h2><div class="muted">${esc(catInfo(p.category).emoji + " " + p.category)}</div></div>
           ${p.rating ? `<div class="score"><b>★ ${p.rating.toFixed(1)}</b><small>${p.ratings_count ? bigNum(p.ratings_count) + " оценок" : "рейтинг"}</small></div>` : ""}
         </div>
-        <div class="tags">${[p.city, p.district, ...(p.tags || []).map(tagLabel), p.photos.length > 1 ? `📷 ${p.photos.length} фото →` : ""].filter(Boolean).map((t) => `<span class="tag">${esc(t)}</span>`).join("")}</div>
+        <div class="tags">${[distanceTo(p) !== null ? `📍 ${fmtDist(distanceTo(p))} от тебя` : "", p.city, p.district, ...(p.tags || []).map(tagLabel), p.photos.length > 1 ? `📷 ${p.photos.length} фото →` : ""].filter(Boolean).map((t) => `<span class="tag">${esc(t)}</span>`).join("")}</div>
 
         <div class="actions">
           <button class="action press" data-fav="${p.id}"><span>${fav ? "❤️" : "🤍"}</span>${fav ? "В избранном" : "Сохранить"}</button>
@@ -1045,6 +1085,14 @@ document.addEventListener("click", async (e) => {
     track(() => { stats.reviews += 1; });
     return openLink(`https://t.me/${botName}?start=review_${d.review}`);
   }
+  if ("near" in d) return findNearby();
+  if (d.nearCat) {
+    state.nearCat = d.nearCat;
+    state.limit = PAGE;
+    haptic("soft");
+    return render();
+  }
+  if ("geoSettings" in d) { try { tg.LocationManager.openSettings(); } catch {} return; }
   if (d.invite) return openInvite(byId(+d.invite));
   if (d.inviteKind) {
     document.querySelectorAll("[data-invite-kind]").forEach((b) => b.classList.toggle("on", b === el));
@@ -1086,6 +1134,64 @@ document.addEventListener("click", async (e) => {
 });
 
 
+
+
+// ---------- Где я: геопозиция и расстояния ----------
+
+let userPos = null;
+
+function distanceTo(p) {
+  if (!userPos || !p.lat || !p.lon) return null;
+  const R = 6371, rad = Math.PI / 180;
+  const dLat = (p.lat - userPos.lat) * rad, dLon = (p.lon - userPos.lon) * rad;
+  const a = Math.sin(dLat / 2) ** 2 + Math.cos(userPos.lat * rad) * Math.cos(p.lat * rad) * Math.sin(dLon / 2) ** 2;
+  return 2 * R * Math.asin(Math.sqrt(a));
+}
+
+function fmtDist(km) {
+  if (km < 1) return `${Math.max(10, Math.round(km * 100) * 10)} м`;
+  return `${km.toFixed(km < 10 ? 1 : 0).replace(".", ",")} км`;
+}
+
+// Сначала спрашиваем Telegram (Bot API 8.0), иначе — обычную геолокацию браузера
+function locate() {
+  return new Promise((resolve, reject) => {
+    const browser = () => {
+      if (!navigator.geolocation) return reject(new Error("нет геолокации"));
+      navigator.geolocation.getCurrentPosition(
+        (pos) => resolve({ lat: pos.coords.latitude, lon: pos.coords.longitude }),
+        reject, { enableHighAccuracy: true, timeout: 15000, maximumAge: 60000 });
+    };
+    const lm = inTelegram && tg.LocationManager && tg.isVersionAtLeast("8.0") ? tg.LocationManager : null;
+    if (!lm) return browser();
+    const ask = () => {
+      if (!lm.isLocationAvailable) return browser();
+      lm.getLocation((loc) => (loc ? resolve({ lat: loc.latitude, lon: loc.longitude }) : reject(new Error("нет доступа"))));
+    };
+    lm.isInited ? ask() : lm.init(ask);
+  });
+}
+
+async function findNearby() {
+  if (state.view !== "nearby") go("nearby", { nearCat: "all", limit: PAGE });
+  state.locating = true;
+  render();
+  try {
+    userPos = await locate();
+  } catch {
+    userPos = null;
+  }
+  state.locating = false;
+  // Если ты в другом городе из базы — переключаемся на него
+  const nearest = places.filter((p) => p.lat && p.lon).map((p) => [distanceTo(p), p]).sort((a, b) => a[0] - b[0])[0];
+  if (nearest && nearest[0] < 50 && nearest[1].city !== city) {
+    city = nearest[1].city;
+    storeSet("city", city);
+    toast(`📍 Похоже, ты в городе ${city}`);
+  }
+  haptic("medium");
+  render();
+}
 
 // ---------- Приглашение-открытка (по желанию) ----------
 
@@ -1247,7 +1353,7 @@ addEventListener("scroll", () => {
 app.innerHTML = skeleton();
 (async () => {
   try {
-    const res = await fetch("places.json?v=" + Date.now());
+    const res = await fetch("places.json");
     const data = await res.json();
     places = data.places || data;
     botName = data.bot || "";
