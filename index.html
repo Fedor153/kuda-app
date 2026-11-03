@@ -458,6 +458,17 @@ const TAGS = {
 };
 const PAGE = 30;
 const isVerified = (p) => !!p.ratings_count;
+// Где бронь действительно нужна: рестораны, вечерние места и развлечения с записью.
+// В парк, музей, на смотровую или в кино бронировать нечего.
+const BOOKABLE_ACTIVITIES = ["квест", "скалодром", "картинг", "пейнтбол и лазертаг", "батуты", "боулинг",
+                             "мини-гольф", "конные прогулки", "караоке"];
+function needsBooking(p) {
+  const tags = p.tags || [];
+  if (p.category === "Еда") return true;
+  if (p.category === "Вечер") return !tags.includes("кино");
+  if (p.category === "Активности") return tags.some((t) => BOOKABLE_ACTIVITIES.includes(t));
+  return false;
+}
 const mapQuery = (p) => [p.name, p.address, p.city].filter(Boolean).join(", ");
 // Яндекс: ищем по названию рядом с точкой, а без точки — по названию, адресу и городу
 const yandexLink = (p) => p.lat && p.lon
@@ -878,7 +889,7 @@ const views = {
           ${botName ? `<button class="btn press" style="margin-top:10px;box-shadow:none;background:var(--bg2)" data-review="${p.id}">✍️ Написать отзыв</button>` : ""}
         </div>
 
-        <button class="btn primary press" data-go="booking">📝 Текст для брони</button>
+        ${needsBooking(p) ? `<button class="btn primary press" data-go="booking">📝 Текст для брони</button>` : ""}
         ${p.photo_credit ? `<p class="credit">Фото: ${esc(p.photo_credit)}</p>` : ""}
         ${p.ratings_count ? `<p class="credit">✓ Проверено: рейтинг и число оценок — по данным Яндекс Карт на 2 ноября 2026.</p>` : ""}
         ${p.osm ? `<p class="credit">Данные о месте: © участники OpenStreetMap (ODbL).${p.rating ? "" : " Рейтинга пока нет — оставь первый отзыв!"}</p>` : ""}
