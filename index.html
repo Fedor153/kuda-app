@@ -616,7 +616,8 @@ function inCategory(cat) {
     : inCity().filter((p) => p.category === cat);
 }
 
-const byRating = (a, b) => (b.rating || 0) - (a.rating || 0) || a.name.localeCompare(b.name, "ru");
+// При равном рейтинге выше те, у кого есть фото
+const byRating = (a, b) => (b.rating || 0) - (a.rating || 0) || (b.photos.length > 0) - (a.photos.length > 0) || a.name.localeCompare(b.name, "ru");
 
 function filtered() {
   const f = state;
@@ -1473,7 +1474,7 @@ addEventListener("scroll", () => {
 app.innerHTML = skeleton();
 (async () => {
   try {
-    const res = await fetch("places.json");
+    const res = await fetch("places.json", { cache: "no-cache" });
     const data = await res.json();
     places = data.places || data;
     botName = data.bot || "";
