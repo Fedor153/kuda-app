@@ -63,6 +63,12 @@
     padding: 0 14px; margin-top: 16px; box-shadow: var(--shadow);
   }
   .search input { flex: 1; border: 0; background: none; color: var(--text); font: inherit; padding: 13px 0; outline: none; }
+  .addr-form { margin: 0 0 14px; }
+  .addr-form button { border: 0; background: var(--accent, #7c5cff); color: #fff; font: inherit; font-weight: 700;
+    border-radius: 10px; padding: 8px 12px; cursor: pointer; }
+  .where { display: flex; align-items: center; gap: 8px; justify-content: space-between; margin: 0 0 12px; }
+  .where .muted { margin: 0; }
+  .where button { flex: none; }
 
   /* ---------- Категории ---------- */
   .cats { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; }
@@ -730,28 +736,41 @@ function tile(p, i = 0) {
 
 const views = {
   nearby() {
+    // Можно не делиться геопозицией, а просто написать адрес
+    const form = `<form class="search addr-form" id="addr-form"><span>🏠</span>
+      <input id="addr" placeholder="Или введи адрес: Ходынский бульвар 9" value="${esc(state.addr || "")}" autocomplete="off" enterkeyhint="search">
+      <button type="submit" class="press">Найти</button></form>`;
     if (state.locating) {
-      return `<h2>📍 Рядом со мной</h2><p class="muted" style="margin:0 0 16px">Определяю, где ты…</p>${skeleton()}`;
+      return `<h2>📍 Рядом со мной</h2>${form}<p class="muted" style="margin:0 0 16px">${
+        state.locating === "addr" ? "Ищу адрес…" : "Определяю, где ты…"}</p>${skeleton()}`;
+    }
+    if (state.addrError) {
+      return `<h2>📍 Рядом со мной</h2>${form}
+        <div class="empty"><span class="big">🤔</span>Не нашёл такой адрес.<br>
+        Напиши улицу и дом, например: <b>Ходынский бульвар 9</b> или <b>Невский проспект 28, Санкт-Петербург</b>.</div>
+        <button class="btn press" data-near>📍 Определить, где я</button>`;
     }
     if (!userPos) {
-      return `<h2>📍 Рядом со мной</h2>
+      return `<h2>📍 Рядом со мной</h2>${form}
         <div class="empty"><span class="big">🧭</span>Не получилось узнать, где ты.<br>
-        Разреши доступ к геопозиции — и я покажу места рядом.</div>
+        Разреши доступ к геопозиции или введи адрес выше.</div>
         <button class="btn primary press" data-near>Попробовать ещё раз</button>
         ${inTelegram && tg.LocationManager && tg.LocationManager.isInited && !tg.LocationManager.isAccessGranted
           ? `<div style="height:10px"></div><button class="btn press" data-geo-settings>Открыть настройки доступа</button>` : ""}`;
     }
     const all = places.filter((p) => p.lat && p.lon).map((p) => [distanceTo(p), p]).sort((a, b) => a[0] - b[0]);
     if (!all.length || all[0][0] > 50) {
-      return `<h2>📍 Рядом со мной</h2>
-        <div class="empty"><span class="big">🗺</span>Рядом с тобой пока нет мест из моей базы.<br>
+      return `<h2>📍 Рядом со мной</h2>${form}
+        <div class="empty"><span class="big">🗺</span>${state.posLabel ? `Рядом с адресом «${esc(state.posLabel)}»` : "Рядом с тобой"} пока нет мест из моей базы.<br>
         Я знаю ${plural(cities().length, "город", "города", "городов")}: ${esc(cities().join(", "))}.</div>`;
     }
     const cats = ["all", ...new Set(all.slice(0, 300).map(([, p]) => p.category))];
     const list = all.filter(([, p]) => state.nearCat === "all" || !state.nearCat || p.category === state.nearCat).slice(0, state.limit || PAGE);
     return `
       <h2>📍 Рядом со мной</h2>
-      <p class="muted" style="margin:0 0 12px">Сначала ближайшие · ${esc(all[0][1].city)}</p>
+      ${form}
+      <div class="where"><p class="muted">${state.posLabel ? `🏠 Рядом с: <b>${esc(state.posLabel)}</b>` : "📍 Рядом с тобой"} · сначала ближайшие</p>
+        ${state.posLabel ? `<button class="chip press" data-near>📍 Где я</button>` : ""}</div>
       <div class="chips">${cats.map((c) => `<button class="chip press ${(state.nearCat || "all") === c ? "on" : ""}" data-near-cat="${esc(c)}">${
         c === "all" ? "Все" : esc(catInfo(c).emoji + " " + c)}</button>`).join("")}</div>
       <div style="height:12px"></div>
@@ -998,6 +1017,15 @@ function render() {
     });
   }
 
+  const addrForm = document.getElementById("addr-form");
+  if (addrForm) {
+    addrForm.addEventListener("submit", (e) => {
+      e.preventDefault();
+      const value = document.getElementById("addr").value.trim();
+      if (value) findByAddress(value);
+    });
+  }
+
   if (state.view === "booking") {
     const update = () => {
       const b = state.booking;
@@ -1175,6 +1203,8 @@ function locate() {
 async function findNearby() {
   if (state.view !== "nearby") go("nearby", { nearCat: "all", limit: PAGE });
   state.locating = true;
+  state.posLabel = "";
+  state.addrError = false;
   render();
   try {
     userPos = await locate();
@@ -1182,6 +1212,29 @@ async function findNearby() {
     userPos = null;
   }
   state.locating = false;
+  switchToNearestCity();
+}
+
+async function findByAddress(text) {
+  state.addr = text;
+  state.locating = "addr";
+  state.addrError = false;
+  render();
+  const found = await geocodeAddress(text, city);
+  state.locating = false;
+  if (!found) {
+    state.addrError = true;
+    haptic("error");
+    return render();
+  }
+  userPos = { lat: found.lat, lon: found.lon };
+  state.posLabel = found.label;
+  state.nearCat = "all";
+  state.limit = PAGE;
+  switchToNearestCity();
+}
+
+function switchToNearestCity() {
   // Если ты в другом городе из базы — переключаемся на него
   const nearest = places.filter((p) => p.lat && p.lon).map((p) => [distanceTo(p), p]).sort((a, b) => a[0] - b[0])[0];
   if (nearest && nearest[0] < 50 && nearest[1].city !== city) {
@@ -1191,6 +1244,72 @@ async function findNearby() {
   }
   haptic("medium");
   render();
+}
+
+// ---------- Адрес -> координаты (Nominatim, OpenStreetMap) ----------
+// Те же правила, что в боте (geocode.py): падежи улиц, метро, сначала в выбранном городе
+
+const STREET = "улиц|ул\\.?|просп|пр-т|бульвар|б-р|переул|пер\\.|площад|пл\\.|набережн|наб\\.|шоссе|проезд|тупик|аллея|аллее|метро|м\\.|станци|вокзал|парк|сквер";
+const STREET_CASES = [["бульваре", "бульвар"], ["проспекте", "проспект"], ["переулке", "переулок"], ["проезде", "проезд"],
+  ["тупике", "тупик"], ["улице", "улица"], ["набережной", "набережная"], ["площади", "площадь"], ["аллее", "аллея"]];
+const W = "[а-яёa-z]";  // \b в JS не понимает русские буквы — границы слов пишем сами
+const wordRe = (w, flags = "gi") => new RegExp(`(^|[^а-яёa-z])${w}(?=$|[^а-яёa-z])`, flags);
+
+function addrClean(text) {
+  text = text.trim().replace(/^[.!?]+|[.!?]+$/g, "");
+  const stripped = text.replace(/^\s*(я\s+)?(сейчас\s+)?(нахожусь|стою|живу|тут|здесь)?\s*(на|у|в|около|возле|рядом с)?\s+/i, "").trim();
+  return stripped.length >= 3 ? stripped : text;
+}
+
+function addrNominative(text) {
+  let out = text;
+  for (const [from, to] of STREET_CASES) out = out.replace(wordRe(from), `$1${to}`);
+  if (out === text) return text;
+  const end = "(?=$|[^а-яёa-z])";
+  if (/улица|набережная|площадь|аллея/i.test(out)) {
+    out = out.replace(new RegExp(`(${W}{3,})ой${end}`, "gi"), "$1ая").replace(new RegExp(`(${W}{3,})ей${end}`, "gi"), "$1яя");
+  } else {
+    out = out.replace(new RegExp(`(${W}{2,})ском${end}`, "gi"), "$1ский").replace(new RegExp(`(${W}{2,})цком${end}`, "gi"), "$1цкий")
+      .replace(new RegExp(`(${W}{2,})ном${end}`, "gi"), "$1ный").replace(new RegExp(`(${W}{2,})ом${end}`, "gi"), "$1ый");
+  }
+  return out;
+}
+
+function addrMatches(query, found) {
+  const words = (query.toLowerCase().match(/[а-яёa-z]{4,}/g) || []).filter((w) => !new RegExp(`^(${STREET}|станц|город)`).test(w));
+  return !words.length || found.display_name.toLowerCase().replace(/ё/g, "е").includes(words[0].slice(0, 4).replace(/ё/g, "е"));
+}
+
+function addrLabel(f) {
+  const a = f.address || {};
+  if (f.category === "railway" && f.name) return /метро/i.test(f.name) ? f.name : `метро ${f.name}`;
+  const road = a.road || a.pedestrian || a.square;
+  const town = a.city || a.town || a.village || a.state;
+  if (road) return [road, a.house_number, town].filter(Boolean).join(", ");
+  return [...f.display_name.split(", ").slice(0, 2), town].filter(Boolean).join(", ");
+}
+
+async function geocodeAddress(text, cityName) {
+  const query = addrClean(text.slice(0, 200));
+  const variants = [query, addrNominative(query)];
+  const metro = query.replace(/(станция\s+)?(метро|м\.)\s*/gi, "").trim();
+  if (metro !== query) variants.unshift(metro);
+  const uniq = [...new Set(variants)];
+  const attempts = [...new Set([
+    ...uniq.filter((v) => cityName && !v.toLowerCase().includes(cityName.toLowerCase())).map((v) => `${v}, ${cityName}`),
+    ...uniq])];
+  for (const q of attempts) {
+    try {
+      const url = "https://nominatim.openstreetmap.org/search?" + new URLSearchParams({
+        q, format: "jsonv2", limit: "1", countrycodes: "ru", addressdetails: "1", "accept-language": "ru" });
+      const res = await (await fetch(url)).json();
+      if (res[0] && addrMatches(query, res[0])) {
+        return { lat: +res[0].lat, lon: +res[0].lon, label: addrLabel(res[0]) };
+      }
+    } catch {}
+    await new Promise((r) => setTimeout(r, 1100));  // правило Nominatim: не чаще раза в секунду
+  }
+  return null;
 }
 
 // ---------- Приглашение-открытка (по желанию) ----------
