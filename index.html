@@ -304,6 +304,9 @@
   .row-card .art-deco span { font-size: 13px; }
   .row-card .art-deco span:nth-child(n+4) { display: none; }
   .gallery .art-deco span { font-size: 38px; }
+  .gallery .cover.art::before { content: "иллюстрация"; position: absolute; right: 12px; bottom: 12px; z-index: 2;
+    font-size: 11px; font-weight: 600; color: rgba(255,255,255,.85); background: rgba(0,0,0,.28);
+    padding: 3px 8px; border-radius: 999px; backdrop-filter: blur(6px); }
   .tile .art-deco span { font-size: 24px; }
   @keyframes deco-float { 50% { transform: rotate(var(--r)) scale(var(--s)) translateY(-6px); } }
   @media (prefers-reduced-motion: reduce) { .art-deco span { animation: none; } }
@@ -593,7 +596,7 @@ const COVER_THEMES = {
   cinema:   { main: [["1f37f", "🍿"], ["1f3ac", "🎬"]], deco: "🎞🎟⭐🍿🎥", grads: [["#e53935", "#3b0a0a"], ["#283048", "#859398"], ["#3a1c71", "#d76d77"]] },
   theatre:  { main: [["1f3ad", "🎭"], ["1f3bb", "🎻"]], deco: "🎟🌹✨🎶🕯", grads: [["#8e2de2", "#2b0a4a"], ["#b31217", "#3d0610"], ["#c79a3b", "#4a2c0a"]] },
   art:      { main: [[null, "🎨"], [null, "🖼"]], deco: "🖌✏️🖼✨🎨", grads: [["#ff9a9e", "#6a4cff"], ["#43cea2", "#185a9d"], ["#f7971e", "#c81d77"]] },
-  museum:   { main: [[null, "🏛"], ["1f3bb", "🎻"]], deco: "🏺🖼📜✨🗿", grads: [["#8d6bff", "#4b33c9"], ["#b8a07e", "#5a4632"], ["#5f7a99", "#1f2f45"]] },
+  museum:   { main: [[null, "🏛"], [null, "🏺"]], deco: "🏺🖼📜✨🗿", grads: [["#8d6bff", "#4b33c9"], ["#b8a07e", "#5a4632"], ["#5f7a99", "#1f2f45"]] },
   space:    { main: [["1fa90", "🪐"], ["1f30c", "🌌"]], deco: "⭐🌙☄️✨🔭", grads: [["#1f1c5c", "#05030f"], ["#3a2d8f", "#0b0726"]] },
   park:     { main: [["1f332", "🌲"], ["1f343", "🍃"]], deco: "🍃🌼🦆🐿🌿🦋", grads: [["#3fd98a", "#0f8f80"], ["#a8e063", "#2e7d32"], ["#76b852", "#1e5631"]] },
   garden:   { main: [["1f337", "🌷"], ["1f338", "🌸"], ["1f339", "🌹"]], deco: "🌼🦋🌿🌸🐝", grads: [["#ffb6c1", "#7bb661"], ["#f9a8d4", "#8b5cf6"]] },
