@@ -291,6 +291,22 @@
   .cover .cover-emoji { width: 46%; height: 46%; max-width: 110px; max-height: 110px; position: relative;
     filter: drop-shadow(0 6px 12px rgba(0,0,0,.25)); }
   .cover img.photo { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
+  /* Обложки-иллюстрации для мест без фото */
+  .cover.art::after { content: ""; position: absolute; inset: 0; pointer-events: none;
+    background: radial-gradient(rgba(255,255,255,.14) 1px, transparent 1.5px) 0 0 / 14px 14px,
+                linear-gradient(to top, rgba(0,0,0,.28), transparent 45%); }
+  .art-deco { position: absolute; inset: 0; pointer-events: none; }
+  .art-deco span { position: absolute; font-size: 22px; line-height: 1; opacity: .5; filter: saturate(.9);
+    transform: rotate(var(--r)) scale(var(--s)); animation: deco-float 6s ease-in-out var(--d) infinite; }
+  .art-plate { position: absolute; width: 58%; aspect-ratio: 1; max-width: 170px; border-radius: 50%;
+    background: radial-gradient(circle, rgba(255,255,255,.32), rgba(255,255,255,.06) 60%, transparent 70%); }
+  .cover .cover-emoji.text { width: auto; height: auto; font-size: 1.1em; line-height: 1; }
+  .row-card .art-deco span { font-size: 13px; }
+  .row-card .art-deco span:nth-child(n+4) { display: none; }
+  .gallery .art-deco span { font-size: 38px; }
+  .tile .art-deco span { font-size: 24px; }
+  @keyframes deco-float { 50% { transform: rotate(var(--r)) scale(var(--s)) translateY(-6px); } }
+  @media (prefers-reduced-motion: reduce) { .art-deco span { animation: none; } }
   .cat .emoji { font-size: 34px; line-height: 1; }
   .cat .emoji .anim { width: 40px; height: 40px; }
   .cat { box-shadow: 0 10px 24px -10px rgba(0,0,0,.45); }
@@ -559,11 +575,93 @@ function avatarHtml(name, photo, cls = "") {
   return `<div class="avatar ${cls}" style="background:${grad}">${letter}${img}</div>`;
 }
 
+// ---------- Обложки для мест без фото ----------
+// Не фото места, а иллюстрация по его типу: своя палитра, главный эмодзи и россыпь мелких.
+// У каждого места свой вариант (зависит от id), поэтому соседние карточки не одинаковые.
+// main: [код анимированного эмодзи Noto или null, обычный эмодзи]
+const COVER_THEMES = {
+  coffee:   { main: [["2615", "☕"], ["1f9cb", "🧋"]], deco: "🥐🍪🫘☕✨🤎", grads: [["#e3a46b", "#7a3e1d"], ["#f2c48d", "#a0522d"], ["#c98b5a", "#4a2410"]] },
+  work:     { main: [["2615", "☕"], [null, "💻"]], deco: "💻📚☕✏️✨", grads: [["#9fb6d6", "#3c4f78"], ["#d6b48f", "#6b4426"]] },
+  dessert:  { main: [["1f369", "🍩"], ["1f366", "🍦"]], deco: "🍰🧁🍓🍬🍫", grads: [["#ffb3d1", "#d94f8c"], ["#ffd6a5", "#f08a5d"]] },
+  pizza:    { main: [["1f355", "🍕"], ["1f35d", "🍝"]], deco: "🍅🧀🌿🫒🍷", grads: [["#ff9a62", "#c0392b"], ["#ffcf70", "#e8590c"], ["#7dc87d", "#c0392b"]] },
+  asian:    { main: [["1f35c", "🍜"], [null, "🍣"]], deco: "🥢🍙🍤🌸🍵", grads: [["#ff8a80", "#8e1b1b"], ["#ffb199", "#ff0844"], ["#5b4a6e", "#1f1530"]] },
+  georgian: { main: [["1f377", "🍷"], [null, "🥟"]], deco: "🥟🧀🍇🌿🍷", grads: [["#d66d75", "#5b1a2a"], ["#e29587", "#7b2d26"]] },
+  burger:   { main: [["1f354", "🍔"], ["1f32f", "🌯"]], deco: "🍟🥤🧀🥓🍔", grads: [["#ffd166", "#ef476f"], ["#ffb347", "#c2410c"]] },
+  russian:  { main: [["1f95e", "🥞"], ["1f35e", "🍞"]], deco: "🍯🥟🫖🍓🌾", grads: [["#ffe29f", "#d98c3f"], ["#f6d365", "#b5651d"]] },
+  food:     { main: [["1f37d_fe0f", "🍽"], ["1f942", "🥂"]], deco: "🍷🥗🕯🍋🌿🧂", grads: [["#ffc04d", "#ff6a3d"], ["#f6a77a", "#b23a48"], ["#94c973", "#2f6b3a"], ["#e0a96d", "#7a4b2a"]] },
+  bar:      { main: [["1f942", "🥂"], ["1f37b", "🍻"], ["1f377", "🍷"]], deco: "🍸🍋🎶🍒🧊✨", grads: [["#6a3093", "#1a0b2e"], ["#4a5bb0", "#141a3d"], ["#b24592", "#2b1236"], ["#0f9b8e", "#0b2b3a"]] },
+  cinema:   { main: [["1f37f", "🍿"], ["1f3ac", "🎬"]], deco: "🎞🎟⭐🍿🎥", grads: [["#e53935", "#3b0a0a"], ["#283048", "#859398"], ["#3a1c71", "#d76d77"]] },
+  theatre:  { main: [["1f3ad", "🎭"], ["1f3bb", "🎻"]], deco: "🎟🌹✨🎶🕯", grads: [["#8e2de2", "#2b0a4a"], ["#b31217", "#3d0610"], ["#c79a3b", "#4a2c0a"]] },
+  art:      { main: [[null, "🎨"], [null, "🖼"]], deco: "🖌✏️🖼✨🎨", grads: [["#ff9a9e", "#6a4cff"], ["#43cea2", "#185a9d"], ["#f7971e", "#c81d77"]] },
+  museum:   { main: [[null, "🏛"], ["1f3bb", "🎻"]], deco: "🏺🖼📜✨🗿", grads: [["#8d6bff", "#4b33c9"], ["#b8a07e", "#5a4632"], ["#5f7a99", "#1f2f45"]] },
+  space:    { main: [["1fa90", "🪐"], ["1f30c", "🌌"]], deco: "⭐🌙☄️✨🔭", grads: [["#1f1c5c", "#05030f"], ["#3a2d8f", "#0b0726"]] },
+  park:     { main: [["1f332", "🌲"], ["1f343", "🍃"]], deco: "🍃🌼🦆🐿🌿🦋", grads: [["#3fd98a", "#0f8f80"], ["#a8e063", "#2e7d32"], ["#76b852", "#1e5631"]] },
+  garden:   { main: [["1f337", "🌷"], ["1f338", "🌸"], ["1f339", "🌹"]], deco: "🌼🦋🌿🌸🐝", grads: [["#ffb6c1", "#7bb661"], ["#f9a8d4", "#8b5cf6"]] },
+  views:    { main: [["1f307", "🌇"], ["1f305", "🌅"]], deco: "☁️✨🏙📸🕊", grads: [["#ff9966", "#5b2c83"], ["#4facfe", "#1e3c72"], ["#f857a6", "#ff5858"]] },
+  quest:    { main: [[null, "🗝"], ["1f3b2", "🎲"]], deco: "🔦🧩🕯🔒❓", grads: [["#232526", "#5c3d10"], ["#3e1f47", "#0d0d0d"]] },
+  zoo:      { main: [["1f981", "🦁"], ["1f42c", "🐬"]], deco: "🐾🌿🦒🐘🦜", grads: [["#f7b733", "#4a7c2f"], ["#56ccf2", "#2f80ed"]] },
+  rink:     { main: [["26f8_fe0f", "⛸"]], deco: "❄️✨🧣❄️", grads: [["#a1c4fd", "#2a5298"], ["#e0eafc", "#6a8caf"]] },
+  water:    { main: [["1f30a", "🌊"], ["1f42c", "🐬"]], deco: "💦🏄🫧☀️🐚", grads: [["#43e97b", "#0288d1"], ["#4facfe", "#00539c"]] },
+  bowling:  { main: [["1f3b3", "🎳"]], deco: "✨🎶⭐🥤", grads: [["#ff512f", "#3a1c71"], ["#4a5bb0", "#141a3d"]] },
+  karaoke:  { main: [["1f3b6", "🎶"], ["1f3b8", "🎸"]], deco: "🎤🎵✨🎧", grads: [["#fc466b", "#3f5efb"], ["#8e2de2", "#4a00e0"]] },
+  fun:      { main: [["1f3a1", "🎡"], ["1f3a2", "🎢"], ["1f3a0", "🎠"]], deco: "🎈🍭🎉✨🎟", grads: [["#ff8a45", "#ff3d71"], ["#f9d423", "#ff4e50"], ["#00c6ff", "#0072ff"]] },
+  arcade:   { main: [[null, "🕹"], ["1f3af", "🎯"]], deco: "👾⭐🎮🪙✨", grads: [["#7f00ff", "#e100ff"], ["#00d2ff", "#3a47d5"]] },
+  sport:    { main: [["1f3ce_fe0f", "🏎"], ["1f3af", "🎯"]], deco: "🏁⚡🔥⭐", grads: [["#ff416c", "#3a0b0b"], ["#f7971e", "#7a2e0e"]] },
+  climb:    { main: [[null, "🧗"]], deco: "⛰🧡✨🪢", grads: [["#ff7e5f", "#5b2a86"], ["#f2994a", "#2d6a4f"]] },
+  horse:    { main: [["1f40e", "🐎"]], deco: "🌾🍀🌿🐴", grads: [["#d4a373", "#606c38"]] },
+  golf:     { main: [["26f3", "⛳"]], deco: "🌿☀️🏌️✨", grads: [["#a8e063", "#2e7d32"]] },
+  jump:     { main: [[null, "🤸"]], deco: "⭐⚡🎈✨", grads: [["#f857a6", "#4a00e0"]] },
+  night:    { main: [["1f30c", "🌌"], ["2728", "✨"]], deco: "🌙⭐🎶✨", grads: [["#4a5bb0", "#141a3d"]] },
+};
+const TAG_THEME = {
+  "десерты": "dessert", "пицца": "pizza", "итальянская кухня": "pizza", "японская кухня": "asian",
+  "азиатская кухня": "asian", "грузинская кухня": "georgian", "кавказская кухня": "georgian", "бургеры": "burger",
+  "русская кухня": "russian", "татарская кухня": "russian", "узбекская кухня": "georgian",
+  "бар": "bar", "кино": "cinema", "театр": "theatre", "галерея": "art", "арт-пространство": "art",
+  "планетарий": "space", "сад": "garden", "виды": "views", "квест": "quest", "зоопарк": "zoo", "каток": "rink",
+  "аквапарк": "water", "боулинг": "bowling", "караоке": "karaoke", "парк развлечений": "fun",
+  "игровые автоматы": "arcade", "картинг": "sport", "пейнтбол и лазертаг": "sport", "скалодром": "climb",
+  "конные прогулки": "horse", "мини-гольф": "golf", "батуты": "jump",
+};
+const CAT_THEME = { "Кофейни": "coffee", "Еда": "food", "Культура": "museum", "Прогулки": "park", "Вечер": "night", "Активности": "fun" };
+
+function coverTheme(p) {
+  for (const t of p.tags || []) if (TAG_THEME[t]) return COVER_THEMES[TAG_THEME[t]];
+  if (p.category === "Кофейни" && (p.tags || []).includes("для работы")) return COVER_THEMES.work;
+  return COVER_THEMES[CAT_THEME[p.category]] || COVER_THEMES.food;
+}
+
+// Простой генератор случайных чисел от id: у места всегда одна и та же обложка
+function seeded(n) {
+  let x = (n * 2654435761) >>> 0 || 1;
+  return () => ((x = (x ^ (x << 13)) >>> 0, x = (x ^ (x >>> 17)) >>> 0, x = (x ^ (x << 5)) >>> 0) % 10000) / 10000;
+}
+
+function artCover(p) {
+  const th = coverTheme(p), rnd = seeded(p.id + 7);
+  const pick = (arr) => arr[Math.floor(rnd() * arr.length)];
+  const [a, b] = pick(th.grads);
+  const [code, emoji] = pick(th.main);
+  const deco = [...th.deco].filter((ch) => !/[\u200d\ufe0f]/.test(ch));
+  // 6 мелких эмодзи по краям, чтобы не закрывать главный
+  const spots = [[8, 12], [78, 8], [86, 58], [10, 66], [46, 84], [62, 26], [24, 38]].sort(() => rnd() - 0.5).slice(0, 6);
+  const small = spots.map(([x, y], i) => `<span style="left:${x + rnd() * 6}%;top:${y + rnd() * 6}%;
+    --r:${Math.round(rnd() * 50 - 25)}deg;--s:${(0.75 + rnd() * 0.6).toFixed(2)};--d:${(i * 0.7).toFixed(1)}s">${deco[Math.floor(rnd() * deco.length)]}</span>`).join("");
+  const angle = Math.round(110 + rnd() * 70);
+  const glow = `radial-gradient(circle at ${Math.round(20 + rnd() * 60)}% ${Math.round(15 + rnd() * 30)}%, rgba(255,255,255,.35), transparent 55%)`;
+  const main = code ? anim(code, emoji, "anim cover-emoji") : `<span class="cover-emoji text">${emoji}</span>`;
+  return { bg: `${glow}, linear-gradient(${angle}deg, ${a}, ${b})`, html: `<div class="art-deco">${small}</div><div class="art-plate"></div>${main}` };
+}
+
 function coverHtml(p, photoIdx = 0, extra = "") {
-  const info = catInfo(p.category);
   const photo = p.photos && p.photos[photoIdx];
-  return `<div class="cover" style="background:${info.grad}">${anim(info.anim, info.emoji, "anim cover-emoji")}
-    ${photo ? `<img class="photo" src="${esc(photo)}" alt="" loading="lazy" onerror="this.remove()">` : ""}${extra}</div>`;
+  if (photo) {
+    const info = catInfo(p.category);
+    return `<div class="cover" style="background:${info.grad}">${anim(info.anim, info.emoji, "anim cover-emoji")}
+      <img class="photo" src="${esc(photo)}" alt="" loading="lazy" onerror="this.remove()">${extra}</div>`;
+  }
+  const art = artCover(p);
+  return `<div class="cover art" style="background:${art.bg}">${art.html}${extra}</div>`;
 }
 
 // ---------- Хранилище: облако Telegram, вне Telegram — браузер ----------
