@@ -841,7 +841,7 @@ const views = {
   nearby() {
     // Можно не делиться геопозицией, а просто написать адрес
     const form = `<form class="search addr-form" id="addr-form"><span>🏠</span>
-      <input id="addr" placeholder="Или введи адрес: Ходынский бульвар 9" value="${esc(state.addr || "")}" autocomplete="off" enterkeyhint="search">
+      <input id="addr" placeholder="Или введи адрес: улица и дом" value="${esc(state.addr || "")}" autocomplete="off" enterkeyhint="search">
       <button type="submit" class="press">Найти</button></form>`;
     if (state.locating) {
       return `<h2>📍 Рядом со мной</h2>${form}<p class="muted" style="margin:0 0 16px">${
@@ -850,7 +850,7 @@ const views = {
     if (state.addrError) {
       return `<h2>📍 Рядом со мной</h2>${form}
         <div class="empty"><span class="big">🤔</span>Не нашёл такой адрес.<br>
-        Напиши улицу и дом, например: <b>Ходынский бульвар 9</b> или <b>Невский проспект 28, Санкт-Петербург</b>.</div>
+        Напиши улицу и дом, например: <b>улица Арбат 10</b> или <b>Невский проспект 28, Санкт-Петербург</b>.</div>
         <button class="btn press" data-near>📍 Определить, где я</button>`;
     }
     if (!userPos) {
