@@ -1025,6 +1025,7 @@ const views = {
           ${tel ? `<a class="action press" href="tel:${esc(tel)}"><span>📞</span>Позвонить</a>` : ""}
           ${siteUrl ? `<button class="action press" data-link="${esc(siteUrl)}"><span>🌐</span>Сайт</button>` : ""}
           <button class="action press" data-invite="${p.id}"><span>💌</span>Позвать</button>
+          ${botName ? `<button class="action press" data-meet="${p.id}"><span>👥</span>Компания</button>` : ""}
           <button class="action press" data-share="${p.id}"><span>📤</span>Поделиться</button>
         </div>
 
@@ -1224,6 +1225,7 @@ document.addEventListener("click", async (e) => {
     return render();
   }
   if ("geoSettings" in d) { try { tg.LocationManager.openSettings(); } catch {} return; }
+  if (d.meet) return openLink(`https://t.me/${botName}?start=meet_${d.meet}`);
   if (d.invite) return openInvite(byId(+d.invite));
   if (d.inviteKind) {
     document.querySelectorAll("[data-invite-kind]").forEach((b) => b.classList.toggle("on", b === el));
